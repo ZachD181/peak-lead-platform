@@ -823,3 +823,135 @@ footer .brand {
     grid-template-columns: 1fr;
   }
 }
+.settings-section {
+  width: min(1180px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 20px 0 120px;
+}
+
+.settings-panel {
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(214, 255, 75, 0.06),
+      transparent 30%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.045),
+      rgba(255, 255, 255, 0.02)
+    );
+
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 30px;
+  box-shadow: var(--shadow);
+}
+
+.settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 26px;
+  border-bottom: 1px solid var(--line);
+}
+
+.settings-header h3 {
+  margin-top: 5px;
+  font-size: 1.8rem;
+}
+
+.settings-client {
+  padding: 8px 13px;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1px solid rgba(214, 255, 75, 0.2);
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.settings-group {
+  padding: 30px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.settings-group-heading {
+  margin-bottom: 20px;
+}
+
+.settings-group-heading h3 {
+  font-size: 1.3rem;
+}
+
+.settings-group-heading p {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.setting-row {
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.setting-row label {
+  font-weight: 600;
+}
+
+.setting-row input {
+  width: 85px;
+  padding: 10px 12px;
+  text-align: center;
+
+  color: var(--text);
+  background: #0d1116;
+
+  border: 1px solid var(--line);
+  border-radius: 9px;
+
+  font: inherit;
+  font-weight: 800;
+  outline: none;
+}
+
+.setting-row input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(214, 255, 75, 0.08);
+}
+
+.settings-footer {
+  padding-top: 28px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.settings-footer p {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.settings-footer button {
+  border: 0;
+  cursor: pointer;
+}
+
+@media (max-width: 650px) {
+  .settings-header,
+  .settings-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .settings-footer button {
+    width: 100%;
+  }
+}

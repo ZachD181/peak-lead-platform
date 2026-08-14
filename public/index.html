@@ -521,7 +521,249 @@
     </p>
   </footer>
 
-  <script src="/app.js"></script>
+  
+  <section id="settings" class="settings-section">
+
+  <div class="section-heading">
+    <p class="eyebrow">PEAK SETTINGS</p>
+    <h2>Define what makes a great lead.</h2>
+
+    <p>
+      Customize how Peak scores opportunities for
+      your business.
+    </p>
+  </div>
+
+  <div class="settings-panel">
+
+    <div class="settings-header">
+      <div>
+        <p class="eyebrow">LEAD SCORING</p>
+        <h3>Scoring Rules</h3>
+      </div>
+
+      <span class="settings-client">
+        Peak Demo Company
+      </span>
+    </div>
+
+    <form id="scoring-settings-form">
+
+      <div class="settings-group">
+
+        <div class="settings-group-heading">
+          <h3>Urgency</h3>
+          <p>How quickly does the customer need help?</p>
+        </div>
+
+        <div class="setting-row">
+          <label for="score-immediately">
+            Immediately
+          </label>
+
+          <input
+            id="score-immediately"
+            name="immediately"
+            type="number"
+            min="0"
+            max="100"
+            value="30"
+          />
+        </div>
+
+        <div class="setting-row">
+          <label for="score-30-days">
+            Within 30 days
+          </label>
+
+          <input
+            id="score-30-days"
+            name="within30Days"
+            type="number"
+            min="0"
+            max="100"
+            value="25"
+          />
+        </div>
+
+        <div class="setting-row">
+          <label for="score-1-3">
+            1–3 months
+          </label>
+
+          <input
+            id="score-1-3"
+            name="oneToThreeMonths"
+            type="number"
+            min="0"
+            max="100"
+            value="18"
+          />
+        </div>
+
+        <div class="setting-row">
+          <label for="score-3-6">
+            3–6 months
+          </label>
+
+          <input
+            id="score-3-6"
+            name="threeToSixMonths"
+            type="number"
+            min="0"
+            max="100"
+            value="10"
+          />
+        </div>
+
+        <div class="setting-row">
+          <label for="score-researching">
+            Just researching
+          </label>
+
+          <input
+            id="score-researching"
+            name="researching"
+            type="number"
+            min="0"
+            max="100"
+            value="4"
+          />
+        </div>
+
+      </div>
+
+      <div class="settings-group">
+
+        <div class="settings-group-heading">
+          <h3>Readiness</h3>
+          <p>How close is the prospect to buying?</p>
+        </div>
+
+        <div class="setting-row">
+          <label for="score-ready">
+            Ready to buy
+          </label>
+
+          <input
+            id="score-ready"
+            name="readyToBuy"
+            type="number"
+            min="0"
+            max="100"
+            value="25"
+          />
+        </div>
+
+        <div class="setting-row">
+          <label for="score-comparing">
+            Actively comparing
+          </label>
+
+          <input
+            id="score-comparing"
+            name="activelyComparing"
+            type="number"
+            min="0"
+            max="100"
+            value="20"
+          />
+        </div>
+
+        <div class="setting-row">
+          <label for="score-estimates">
+            Getting estimates
+          </label>
+
+          <input
+            id="score-estimates"
+            name="gettingEstimates"
+            type="number"
+            min="0"
+            max="100"
+            value="14"
+          />
+        </div>
+
+        <div class="setting-row">
+          <label for="score-early">
+            Early research
+          </label>
+
+          <input
+            id="score-early"
+            name="earlyResearch"
+            type="number"
+            min="0"
+            max="100"
+            value="6"
+          />
+        </div>
+
+      </div>
+
+      <div class="settings-group">
+
+        <div class="settings-group-heading">
+          <h3>Contact Signals</h3>
+          <p>
+            Reward leads that provide more information.
+          </p>
+        </div>
+
+        <div class="setting-row">
+          <label for="score-phone">
+            Phone provided
+          </label>
+
+          <input
+            id="score-phone"
+            name="phone"
+            type="number"
+            min="0"
+            max="100"
+            value="8"
+          />
+        </div>
+
+        <div class="setting-row">
+          <label for="score-notes">
+            Notes provided
+          </label>
+
+          <input
+            id="score-notes"
+            name="notes"
+            type="number"
+            min="0"
+            max="100"
+            value="4"
+          />
+        </div>
+
+      </div>
+
+      <div class="settings-footer">
+
+        <p id="settings-status">
+          Using Peak's current scoring model.
+        </p>
+
+        <button
+          type="submit"
+          class="primary-button"
+        >
+          Save Scoring Rules
+        </button>
+
+      </div>
+
+    </form>
+
+  </div>
+
+</section>
+<script src="/app.js"></script>
 
 </body>
 </html>

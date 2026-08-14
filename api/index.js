@@ -7,6 +7,8 @@ const {
   updateLead,
   createActivity,
   getActivitiesByClient,
+  getClientSettings,
+updateClientScoringRules,
 } = require("../lib/repository");
 
 const { calculateLeadScore } = require("../lib/scoring");
@@ -85,8 +87,12 @@ async function handleCreateLead(req, res) {
       error: "A valid email is required.",
     });
   }
+  
 
-  const scoring = calculateLeadScore(input);
+  const scoring = calculateLeadScore(
+  input,
+  client.scoringRules
+);
 
   const now = new Date().toISOString();
 
@@ -267,7 +273,69 @@ async function handleUpdateLead(req, res, leadId) {
     lead,
   });
 }
+async function handleGetSettings(res, url) {
+  const clientSlug = cleanText(
+    url.searchParams.get("client"),
+    100
+  );
 
+  if (!clientSlug) {
+    return sendJson(res, 400, {
+      error: "Client is required.",
+    });
+  }
+
+  const client = await getClientSettings(clientSlug);
+
+  if (!client) {
+    return sendJson(res, 404, {
+      error: "Client account not found.",
+    });
+  }
+
+  return sendJson(res, 200, {
+    client,
+  });
+}
+
+async function handleUpdateSettings(req, res) {
+  const input = await readBody(req);
+
+  const clientSlug = cleanText(
+    input.clientSlug,
+    100
+  );
+
+  if (!clientSlug) {
+    return sendJson(res, 400, {
+      error: "clientSlug is required.",
+    });
+  }
+
+  const rules = input.scoringRules;
+
+  if (!rules || typeof rules !== "object") {
+    return sendJson(res, 400, {
+      error: "Valid scoring rules are required.",
+    });
+  }
+
+  const client = await updateClientScoringRules(
+    clientSlug,
+    rules
+  );
+
+  if (!client) {
+    return sendJson(res, 404, {
+      error: "Client account not found.",
+    });
+  }
+
+  return sendJson(res, 200, {
+    success: true,
+    scoringRules: client.scoringRules,
+  });
+}
 module.exports = async function handler(req, res) {
   try {
     const url = new URL(
@@ -314,7 +382,19 @@ module.exports = async function handler(req, res) {
         match[1]
       );
     }
+if (
+  req.method === "GET" &&
+  url.pathname === "/api/settings"
+) {
+  return handleGetSettings(res, url);
+}
 
+if (
+  req.method === "PATCH" &&
+  url.pathname === "/api/settings"
+) {
+  return handleUpdateSettings(req, res);
+}
     return sendJson(res, 404, {
       error: "Not found.",
     });

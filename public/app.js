@@ -387,6 +387,68 @@ function renderMorningBrief(leads) {
     </p>
   `;
 }
+async function loadSettings() {
+  try {
+    const response = await fetch(
+      "/api/settings?client=peak-demo"
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.error || "Unable to load settings."
+      );
+    }
+
+    const rules = data.client.scoringRules;
+
+    if (!rules) return;
+
+    document.getElementById("score-immediately").value =
+      rules.urgency["Immediately"];
+
+    document.getElementById("score-30-days").value =
+      rules.urgency["Within 30 days"];
+
+    document.getElementById("score-1-3").value =
+      rules.urgency["1-3 months"];
+
+    document.getElementById("score-3-6").value =
+      rules.urgency["3-6 months"];
+
+    document.getElementById("score-researching").value =
+      rules.urgency["Just researching"];
+
+    document.getElementById("score-ready").value =
+      rules.readiness["Ready to buy"];
+
+    document.getElementById("score-comparing").value =
+      rules.readiness["Actively comparing"];
+
+    document.getElementById("score-estimates").value =
+      rules.readiness["Getting estimates"];
+
+    document.getElementById("score-early").value =
+      rules.readiness["Early research"];
+
+    document.getElementById("score-phone").value =
+      rules.contact.phone;
+
+    document.getElementById("score-notes").value =
+      rules.contact.notes;
+
+    const clientBadge =
+      document.querySelector(".settings-client");
+
+    if (clientBadge) {
+      clientBadge.textContent = data.client.name;
+    }
+
+  } catch (error) {
+    console.error("Settings error:", error);
+  }
+}
 
 leadForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -481,5 +543,136 @@ if (gclid && !utmSource) {
       error.message || "Something went wrong.";
   }
 });
+const scoringSettingsForm =
+  document.getElementById("scoring-settings-form");
 
+const settingsStatus =
+  document.getElementById("settings-status");
+
+scoringSettingsForm?.addEventListener(
+  "submit",
+  async (event) => {
+    event.preventDefault();
+
+    settingsStatus.textContent =
+      "Saving scoring rules...";
+
+    const scoringRules = {
+      urgency: {
+        "Immediately": Number(
+          document.getElementById(
+            "score-immediately"
+          ).value
+        ),
+
+        "Within 30 days": Number(
+          document.getElementById(
+            "score-30-days"
+          ).value
+        ),
+
+        "1-3 months": Number(
+          document.getElementById(
+            "score-1-3"
+          ).value
+        ),
+
+        "3-6 months": Number(
+          document.getElementById(
+            "score-3-6"
+          ).value
+        ),
+
+        "Just researching": Number(
+          document.getElementById(
+            "score-researching"
+          ).value
+        ),
+      },
+
+      readiness: {
+        "Ready to buy": Number(
+          document.getElementById(
+            "score-ready"
+          ).value
+        ),
+
+        "Actively comparing": Number(
+          document.getElementById(
+            "score-comparing"
+          ).value
+        ),
+
+        "Getting estimates": Number(
+          document.getElementById(
+            "score-estimates"
+          ).value
+        ),
+
+        "Early research": Number(
+          document.getElementById(
+            "score-early"
+          ).value
+        ),
+      },
+
+      contact: {
+        phone: Number(
+          document.getElementById(
+            "score-phone"
+          ).value
+        ),
+
+        notes: Number(
+          document.getElementById(
+            "score-notes"
+          ).value
+        ),
+      },
+    };
+
+    try {
+      const response = await fetch(
+        "/api/settings",
+        {
+          method: "PATCH",
+
+          headers: {
+            "Content-Type": "application/json",
+          },
+
+          body: JSON.stringify({
+            clientSlug: "peak-demo",
+            scoringRules,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error ||
+            "Unable to save scoring rules."
+        );
+      }
+
+      settingsStatus.textContent =
+        "Scoring rules saved successfully.";
+
+    } catch (error) {
+      console.error(
+        "Settings save error:",
+        error
+      );
+
+      settingsStatus.textContent =
+        error.message ||
+        "Unable to save scoring rules.";
+    }
+  }
+);
+
+     
 loadDashboard();
+loadSettings();
