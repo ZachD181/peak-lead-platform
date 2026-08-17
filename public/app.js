@@ -21,14 +21,156 @@ function escapeHtml(value = "") {
       }[char])
   );
 }
+const loginLink = document.getElementById("login-link");
+const logoutButton = document.getElementById("logout-button");
+const demoModeBanner =
+  document.getElementById("demo-mode-banner");
+
+const resetDemoButton =
+  document.getElementById("reset-demo-button");
+
+async function updateAuthUI() {
+  try {
+    const response = await fetch("/api/settings");
+
+    const loggedIn = response.ok;
+
+    if (demoModeBanner) {
+  demoModeBanner.classList.toggle(
+    "hidden",
+    loggedIn
+  );
+}
+
+    if (loginLink) {
+      loginLink.classList.toggle("hidden", loggedIn);
+    }
+
+    if (logoutButton) {
+      logoutButton.classList.toggle("hidden", !loggedIn);
+    }
+
+    return loggedIn;
+  } catch {
+    return false;
+  }
+}
+logoutButton?.addEventListener(
+  "click",
+  async () => {
+    try {
+      await fetch("/api/logout", {
+        method: "POST",
+      });
+    } finally {
+      sessionStorage.removeItem("peak-user");
+
+      window.location.href = "/";
+    }
+  }
+);
+function getVisitorDemoLeads() {
+  try {
+    return JSON.parse(
+      localStorage.getItem(
+        "peak-demo-leads"
+      ) || "[]"
+    );
+  } catch {
+    return [];
+  }
+}
+
+function saveVisitorDemoLead(lead) {
+  const leads = getVisitorDemoLeads();
+
+  leads.unshift(lead);
+
+  localStorage.setItem(
+    "peak-demo-leads",
+    JSON.stringify(leads.slice(0, 20))
+  );
+}
+resetDemoButton?.addEventListener(
+  "click",
+  async () => {
+    localStorage.removeItem("peak-demo-leads");
+
+    await loadDashboard();
+
+    if (formStatus) {
+      formStatus.textContent =
+        "Demo reset. Sample data restored.";
+    }
+  }
+);
+
+async function showAdminControls() {
+  const adminElements =
+    document.querySelectorAll(".admin-only");
+
+  // Hide first, every time.
+  adminElements.forEach((element) => {
+    element.classList.add("hidden");
+  });
+
+  try {
+    const response = await fetch("/api/settings");
+
+    if (!response.ok) {
+      return false;
+    }
+
+    adminElements.forEach((element) => {
+      element.classList.remove("hidden");
+    });
+
+    return true;
+  } catch (error) {
+    console.error("Admin check failed:", error);
+    return false;
+  }
+}
 
 async function loadDashboard() {
   try {
-    const response = await fetch(
-      "/api/pipeline?client=peak-demo"
-    );
+    const authResponse = await fetch("/api/settings");
+
+    const endpoint = authResponse.ok
+      ? "/api/pipeline"
+      : "/api/demo";
+
+    const response = await fetch(endpoint);
 
     const data = await response.json();
+    if (!authResponse.ok) {
+  const visitorLeads =
+    getVisitorDemoLeads();
+
+  data.leads = [
+    ...visitorLeads,
+    ...(data.leads || []),
+  ];
+
+  data.metrics = {
+    total: data.leads.length,
+
+    highPriority: data.leads.filter(
+      (lead) => Number(lead.score) >= 75
+    ).length,
+
+    qualified: data.leads.filter(
+      (lead) => Number(lead.score) >= 55
+    ).length,
+
+    active: data.leads.filter(
+      (lead) =>
+        !["Closed", "Lost"].includes(
+          lead.stage
+        )
+    ).length,
+  };
+}
 
     if (!response.ok) {
       throw new Error(
@@ -36,11 +178,20 @@ async function loadDashboard() {
       );
     }
 
-    renderMetrics(data.metrics || {}, data.leads || []);
-    renderCampaignPerformance(data.leads || []);
+    renderMetrics(
+      data.metrics || {},
+      data.leads || []
+    );
+
     renderPipeline(data.leads || []);
-    renderCampaignPerformance(data.leads || []);
-    renderMorningBrief(data.leads || []);
+
+    renderCampaignPerformance(
+      data.leads || []
+    );
+
+    renderMorningBrief(
+      data.leads || []
+    );
   } catch (error) {
     console.error("Dashboard error:", error);
   }
@@ -99,6 +250,9 @@ cards[3].querySelector("small").textContent =
     topSource[1] === 1 ? "" : "s"
   }`;
 }
+
+
+
 
 function getScoreClass(score) {
   if (score >= 75) return "high";
@@ -504,7 +658,14 @@ if (gclid && !utmSource) {
     
 
   try {
-    const response = await fetch("/api/leads", {
+    const authCheck =
+  await fetch("/api/settings");
+
+const leadEndpoint = authCheck.ok
+  ? "/api/leads"
+  : "/api/demo/leads";
+
+const response = await fetch(leadEndpoint, {
       method: "POST",
 
       headers: {
@@ -533,9 +694,14 @@ if (gclid && !utmSource) {
     formStatus.textContent =
       "Lead captured and scored successfully.";
 
+     if (data.demo && data.lead) {
+  saveVisitorDemoLead(data.lead);
+} 
+
     leadForm.reset();
 
     await loadDashboard();
+
   } catch (error) {
     console.error(error);
 
@@ -675,4 +841,10 @@ scoringSettingsForm?.addEventListener(
 
      
 loadDashboard();
-loadSettings();
+
+showAdminControls().then((isAdmin) => {
+  if (isAdmin) {
+    loadSettings();
+  }
+});
+updateAuthUI();

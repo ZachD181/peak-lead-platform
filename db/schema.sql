@@ -76,3 +76,19 @@ create index if not exists idx_leads_utm_campaign
 
 create index if not exists idx_lead_activities_lead
   on lead_activities(client_id, lead_id);
+  create table if not exists sessions (
+  id text primary key,
+  user_id uuid not null,
+  client_id uuid not null,
+  expires_at timestamptz not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_sessions_user
+  on sessions(user_id);
+
+create index if not exists idx_sessions_client
+  on sessions(client_id);
+
+create index if not exists idx_sessions_expires
+  on sessions(expires_at);

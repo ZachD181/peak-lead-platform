@@ -1,6 +1,7 @@
 const crypto = require("crypto");
 
 const {
+  getUserByEmail,
   getClientBySlug,
   createLead,
   getLeadsByClient,
@@ -9,7 +10,18 @@ const {
   getActivitiesByClient,
   getClientSettings,
 updateClientScoringRules,
+createSession,
+getSession,
+deleteSession,
+getClientById,
+getClientSettingsById,
+updateClientScoringRulesById,
 } = require("../lib/repository");
+
+const {
+  verifyPassword,
+  createSessionToken,
+} = require("../lib/auth");
 
 const { calculateLeadScore } = require("../lib/scoring");
 
@@ -155,19 +167,10 @@ async function handleCreateLead(req, res) {
   });
 }
 
-async function handlePipeline(req, res, url) {
-  const clientSlug = cleanText(
-    url.searchParams.get("client"),
-    100
+async function handlePipeline(req, res, session) {
+  const client = await getClientById(
+    session.clientId
   );
-
-  if (!clientSlug) {
-    return sendJson(res, 400, {
-      error: "Client is required.",
-    });
-  }
-
-  const client = await getClientBySlug(clientSlug);
 
   if (!client) {
     return sendJson(res, 404, {
@@ -175,8 +178,14 @@ async function handlePipeline(req, res, url) {
     });
   }
 
-  const leads = await getLeadsByClient(client.id);
-  const activities = await getActivitiesByClient(client.id);
+  const leads = await getLeadsByClient(
+    session.clientId
+  );
+
+  const activities =
+    await getActivitiesByClient(
+      session.clientId
+    );
 
   return sendJson(res, 200, {
     client: {
@@ -201,11 +210,14 @@ async function handlePipeline(req, res, url) {
 
       active: leads.filter(
         (lead) =>
-          !["Closed", "Lost"].includes(lead.stage)
+          !["Closed", "Lost"].includes(
+            lead.stage
+          )
       ).length,
     },
   });
 }
+
 
 async function handleUpdateLead(req, res, leadId) {
   const input = await readBody(req);
@@ -273,19 +285,10 @@ async function handleUpdateLead(req, res, leadId) {
     lead,
   });
 }
-async function handleGetSettings(res, url) {
-  const clientSlug = cleanText(
-    url.searchParams.get("client"),
-    100
+async function handleGetSettings(res, session) {
+  const client = await getClientSettingsById(
+    session.clientId
   );
-
-  if (!clientSlug) {
-    return sendJson(res, 400, {
-      error: "Client is required.",
-    });
-  }
-
-  const client = await getClientSettings(clientSlug);
 
   if (!client) {
     return sendJson(res, 404, {
@@ -298,19 +301,12 @@ async function handleGetSettings(res, url) {
   });
 }
 
-async function handleUpdateSettings(req, res) {
+async function handleUpdateSettings(
+  req,
+  res,
+  session
+) {
   const input = await readBody(req);
-
-  const clientSlug = cleanText(
-    input.clientSlug,
-    100
-  );
-
-  if (!clientSlug) {
-    return sendJson(res, 400, {
-      error: "clientSlug is required.",
-    });
-  }
 
   const rules = input.scoringRules;
 
@@ -320,10 +316,11 @@ async function handleUpdateSettings(req, res) {
     });
   }
 
-  const client = await updateClientScoringRules(
-    clientSlug,
-    rules
-  );
+  const client =
+    await updateClientScoringRulesById(
+      session.clientId,
+      rules
+    );
 
   if (!client) {
     return sendJson(res, 404, {
@@ -336,6 +333,394 @@ async function handleUpdateSettings(req, res) {
     scoringRules: client.scoringRules,
   });
 }
+async function handleLogin(req, res) {
+  const input = await readBody(req);
+
+  const email = cleanText(
+    input.email,
+    254
+  ).toLowerCase();
+
+  const password = String(
+    input.password || ""
+  );
+
+  if (!email || !password) {
+    return sendJson(res, 400, {
+      error: "Email and password are required.",
+    });
+  }
+
+  const user = await getUserByEmail(email);
+
+  if (!user) {
+    return sendJson(res, 401, {
+      error: "Invalid email or password.",
+    });
+  }
+
+  const validPassword = await verifyPassword(
+    password,
+    user.passwordSalt,
+    user.passwordHash
+  );
+
+  if (!validPassword) {
+    return sendJson(res, 401, {
+      error: "Invalid email or password.",
+    });
+  }
+
+ const token = createSessionToken();
+
+const now = new Date();
+
+const expiresAt = new Date(
+  now.getTime() + 1000 * 60 * 60 * 8
+);
+
+await createSession({
+  id: token,
+  userId: user.id,
+  clientId: user.clientId,
+  expiresAt: expiresAt.toISOString(),
+  createdAt: now.toISOString(),
+});
+
+res.setHeader(
+  "Set-Cookie",
+  [
+    `peak_session=${token}`,
+    "HttpOnly",
+    "Path=/",
+    "SameSite=Lax",
+    `Max-Age=${60 * 60 * 8}`,
+  ].join("; ")
+);
+
+return sendJson(res, 200, {
+  success: true,
+  user: {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    clientId: user.clientId,
+  },
+});
+}
+
+function getCookie(req, name) {
+  const cookieHeader = String(
+    req.headers.cookie || ""
+  );
+
+  const cookies = cookieHeader
+    .split(";")
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  for (const cookie of cookies) {
+    const separator = cookie.indexOf("=");
+
+    if (separator === -1) continue;
+
+    const key = cookie.slice(0, separator);
+    const value = cookie.slice(separator + 1);
+
+    if (key === name) {
+      return value;
+    }
+  }
+
+  return "";
+}
+
+async function requireSession(req, res) {
+  const sessionId = getCookie(
+    req,
+    "peak_session"
+  );
+
+  if (!sessionId) {
+    sendJson(res, 401, {
+      error: "Authentication required.",
+    });
+
+    return null;
+  }
+
+  const session = await getSession(sessionId);
+
+  if (!session) {
+    sendJson(res, 401, {
+      error: "Session expired or invalid.",
+    });
+
+    return null;
+  }
+
+  return session;
+}
+async function handleLogout(req, res) {
+  const sessionId = getCookie(
+    req,
+    "peak_session"
+  );
+
+  if (sessionId) {
+    await deleteSession(sessionId);
+  }
+
+  res.setHeader(
+    "Set-Cookie",
+    [
+      "peak_session=",
+      "HttpOnly",
+      "Path=/",
+      "SameSite=Lax",
+      "Max-Age=0",
+    ].join("; ")
+  );
+
+  return sendJson(res, 200, {
+    success: true,
+  });
+}
+async function handleDemo(res) {
+  const leads = [
+    {
+      id: "demo-001",
+      name: "Sarah Mitchell",
+      email: "sarah@example.com",
+      phone: "(555) 201-4455",
+      source: "Google Ads",
+      campaign: "Emergency Service",
+      score: 92,
+      stage: "New",
+      urgency: "Immediately",
+      readiness: "Ready to buy",
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: "demo-002",
+      name: "Michael Torres",
+      email: "michael@example.com",
+      phone: "(555) 310-2288",
+      source: "Facebook",
+      campaign: "Spring Promotion",
+      score: 81,
+      stage: "Contacted",
+      urgency: "Within 30 days",
+      readiness: "Ready to buy",
+      createdAt: new Date(
+        Date.now() - 1000 * 60 * 35
+      ).toISOString(),
+    },
+    {
+      id: "demo-003",
+      name: "Amanda Collins",
+      email: "amanda@example.com",
+      phone: "(555) 441-9021",
+      source: "Organic",
+      campaign: "Website",
+      score: 73,
+      stage: "Qualified",
+      urgency: "1-3 months",
+      readiness: "Actively comparing",
+      createdAt: new Date(
+        Date.now() - 1000 * 60 * 90
+      ).toISOString(),
+    },
+    {
+      id: "demo-004",
+      name: "David Brooks",
+      email: "david@example.com",
+      phone: "(555) 678-1134",
+      source: "Referral",
+      campaign: "Customer Referral",
+      score: 68,
+      stage: "Contacted",
+      urgency: "Within 30 days",
+      readiness: "Getting estimates",
+      createdAt: new Date(
+        Date.now() - 1000 * 60 * 60 * 4
+      ).toISOString(),
+    },
+    {
+      id: "demo-005",
+      name: "Jessica Reed",
+      email: "jessica@example.com",
+      phone: "(555) 729-5541",
+      source: "Google Ads",
+      campaign: "Local Search",
+      score: 57,
+      stage: "New",
+      urgency: "1-3 months",
+      readiness: "Getting estimates",
+      createdAt: new Date(
+        Date.now() - 1000 * 60 * 60 * 7
+      ).toISOString(),
+    },
+    {
+      id: "demo-006",
+      name: "Robert Hayes",
+      email: "robert@example.com",
+      phone: "",
+      source: "Organic",
+      campaign: "Website",
+      score: 41,
+      stage: "New",
+      urgency: "3-6 months",
+      readiness: "Early research",
+      createdAt: new Date(
+        Date.now() - 1000 * 60 * 60 * 12
+      ).toISOString(),
+    },
+    {
+      id: "demo-007",
+      name: "Emily Parker",
+      email: "emily@example.com",
+      phone: "(555) 834-9910",
+      source: "Facebook",
+      campaign: "Retargeting",
+      score: 76,
+      stage: "Qualified",
+      urgency: "Within 30 days",
+      readiness: "Actively comparing",
+      createdAt: new Date(
+        Date.now() - 1000 * 60 * 60 * 20
+      ).toISOString(),
+    },
+    {
+      id: "demo-008",
+      name: "Chris Bennett",
+      email: "chris@example.com",
+      phone: "(555) 915-3377",
+      source: "Referral",
+      campaign: "Partner Referral",
+      score: 88,
+      stage: "Proposal",
+      urgency: "Immediately",
+      readiness: "Ready to buy",
+      createdAt: new Date(
+        Date.now() - 1000 * 60 * 60 * 26
+      ).toISOString(),
+    },
+  ];
+
+  const activities = [
+    {
+      id: "activity-001",
+      leadId: "demo-001",
+      type: "lead_created",
+      message: "Sarah Mitchell entered from Google Ads.",
+    },
+    {
+      id: "activity-002",
+      leadId: "demo-002",
+      type: "stage_changed",
+      message: "Michael Torres moved to Contacted.",
+    },
+    {
+      id: "activity-003",
+      leadId: "demo-008",
+      type: "stage_changed",
+      message: "Chris Bennett moved to Proposal.",
+    },
+  ];
+
+  return sendJson(res, 200, {
+    demo: true,
+
+    client: {
+      id: "demo-public",
+      name: "Peak Demo Company",
+      slug: "peak-demo",
+    },
+
+    leads,
+    activities,
+
+    metrics: {
+      total: leads.length,
+
+      highPriority: leads.filter(
+        (lead) => lead.score >= 75
+      ).length,
+
+      qualified: leads.filter(
+        (lead) => lead.score >= 55
+      ).length,
+
+      active: leads.filter(
+        (lead) =>
+          !["Closed", "Lost"].includes(lead.stage)
+      ).length,
+    },
+  });
+}
+async function handleCreateDemoLead(req, res) {
+  const input = await readBody(req);
+
+  const name = cleanText(input.name, 100);
+  const email = cleanText(
+    input.email,
+    254
+  ).toLowerCase();
+
+  if (!name) {
+    return sendJson(res, 400, {
+      error: "Name is required.",
+    });
+  }
+
+  if (!validEmail(email)) {
+    return sendJson(res, 400, {
+      error: "A valid email is required.",
+    });
+  }
+
+  const scoring = calculateLeadScore(input);
+
+  const now = new Date().toISOString();
+
+  const lead = {
+    id: `visitor-${crypto.randomUUID()}`,
+
+    name,
+    email,
+
+    phone: cleanText(input.phone, 30),
+    location: cleanText(input.location, 100),
+
+    urgency: cleanText(input.urgency, 100),
+    readiness: cleanText(input.readiness, 100),
+    notes: cleanText(input.notes, 2000),
+
+    source: cleanText(
+      input.source || "Demo Form",
+      100
+    ),
+
+    score: scoring.score,
+    tier: scoring.tier,
+
+    recommendedAction:
+      scoring.recommendedAction,
+
+    stage: "New",
+
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  return sendJson(res, 201, {
+    demo: true,
+    lead,
+  });
+}
+
 module.exports = async function handler(req, res) {
   try {
     const url = new URL(
@@ -361,12 +746,16 @@ module.exports = async function handler(req, res) {
       return handleCreateLead(req, res);
     }
 
-    if (
-      req.method === "GET" &&
-      url.pathname === "/api/pipeline"
-    ) {
-      return handlePipeline(req, res, url);
-    }
+if (
+  req.method === "GET" &&
+  url.pathname === "/api/pipeline"
+) {
+  const session = await requireSession(req, res);
+
+  if (!session) return;
+
+  return handlePipeline(req, res, session);
+}
 
     const match = url.pathname.match(
       /^\/api\/leads\/([^/]+)$/
@@ -386,14 +775,46 @@ if (
   req.method === "GET" &&
   url.pathname === "/api/settings"
 ) {
-  return handleGetSettings(res, url);
+  const session = await requireSession(req, res);
+
+  if (!session) return;
+
+  return handleGetSettings(res, session);
 }
 
 if (
   req.method === "PATCH" &&
   url.pathname === "/api/settings"
 ) {
-  return handleUpdateSettings(req, res);
+  const session = await requireSession(req, res);
+
+  if (!session) return;
+
+  return handleUpdateSettings(req, res, session);
+}
+if (
+  req.method === "POST" &&
+  url.pathname === "/api/logout"
+) {
+  return handleLogout(req, res);
+}
+if (
+  req.method === "POST" &&
+  url.pathname === "/api/login"
+) {
+  return handleLogin(req, res);
+}
+if (
+  req.method === "GET" &&
+  url.pathname === "/api/demo"
+) {
+  return handleDemo(res);
+}
+if (
+  req.method === "POST" &&
+  url.pathname === "/api/demo/leads"
+) {
+  return handleCreateDemoLead(req, res);
 }
     return sendJson(res, 404, {
       error: "Not found.",

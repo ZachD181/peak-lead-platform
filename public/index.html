@@ -22,6 +22,18 @@
       <a href="#features">Features</a>
       <a href="#demo">Demo</a>
       <a href="#contact">Get Started</a>
+      <a href="#settings" class="admin-only hidden">
+  Settings
+</a>
+<a id="login-link" href="/login.html">Login</a>
+
+<button
+  id="logout-button"
+  class="text-button hidden"
+  type="button"
+>
+  Log Out
+</button>
     </div>
   </nav>
 
@@ -504,6 +516,16 @@
     </div>
 
   </div>
+  <div id="demo-mode-banner" class="demo-mode-banner hidden">
+  <strong>DEMO MODE</strong>
+  <span>
+    You're viewing sample data. Try submitting a lead above.
+  </span>
+
+  <button id="reset-demo-button" type="button">
+    Reset Demo
+  </button>
+</div>
 
 </section>
 
@@ -522,7 +544,7 @@
   </footer>
 
   
-  <section id="settings" class="settings-section">
+  <section id="settings" class="settings-section admin-only hidden">
 
   <div class="section-heading">
     <p class="eyebrow">PEAK SETTINGS</p>

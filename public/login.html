@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Peak Login</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+
+<body>
+
+  <main class="login-page">
+
+    <section class="login-card">
+
+      <div class="brand">
+        <span class="peak-mark">▲</span>
+        <span>PEAK LEAD PLATFORM</span>
+      </div>
+
+      <p class="eyebrow">SECURE CLIENT ACCESS</p>
+
+      <h1>Sign in to Peak.</h1>
+
+      <p class="login-copy">
+        Access your leads, campaign performance,
+        morning brief, and scoring settings.
+      </p>
+
+      <form id="login-form">
+
+        <label>
+          Email
+          <input
+            type="email"
+            name="email"
+            autocomplete="email"
+            required
+          />
+        </label>
+
+        <label>
+          Password
+          <input
+            type="password"
+            name="password"
+            autocomplete="current-password"
+            required
+          />
+        </label>
+
+        <button
+          type="submit"
+          class="primary-button login-button"
+        >
+          Sign In
+        </button>
+
+        <p id="login-status"></p>
+
+      </form>
+
+    </section>
+
+  </main>
+
+  <script>
+    const form = document.getElementById("login-form");
+    const status = document.getElementById("login-status");
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      status.textContent = "Signing in...";
+
+      const data = new FormData(form);
+
+      try {
+        const response = await fetch("/api/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: data.get("email"),
+            password: data.get("password"),
+          }),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            result.error || "Unable to sign in."
+          );
+        }
+
+        sessionStorage.setItem(
+          "peak-session-token",
+          result.token
+        );
+
+        sessionStorage.setItem(
+          "peak-user",
+          JSON.stringify(result.user)
+        );
+
+        status.textContent = "Login successful.";
+
+        window.location.href = "/";
+      } catch (error) {
+        status.textContent = error.message;
+      }
+    });
+  </script>
+
+</body>
+</html>
