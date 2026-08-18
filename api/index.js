@@ -69,21 +69,7 @@ function validEmail(value) {
 async function handleCreateLead(req, res) {
   const input = await readBody(req);
 
-  const clientSlug = cleanText(input.clientSlug, 100);
-
-  if (!clientSlug) {
-    return sendJson(res, 400, {
-      error: "clientSlug is required.",
-    });
-  }
-
-  const client = await getClientBySlug(clientSlug);
-
-  if (!client) {
-    return sendJson(res, 404, {
-      error: "Client account not found.",
-    });
-  }
+  
 
   const name = cleanText(input.name, 100);
   const email = cleanText(input.email, 254).toLowerCase();
@@ -219,29 +205,20 @@ async function handlePipeline(req, res, session) {
 }
 
 
-async function handleUpdateLead(req, res, leadId) {
+async function handleUpdateLead(
+  req,
+  res,
+  leadId,
+  session
+) {
   const input = await readBody(req);
 
-  const clientSlug = cleanText(input.clientSlug, 100);
-
-  if (!clientSlug) {
-    return sendJson(res, 400, {
-      error: "clientSlug is required.",
-    });
-  }
-
-  const client = await getClientBySlug(clientSlug);
-
-  if (!client) {
-    return sendJson(res, 404, {
-      error: "Client account not found.",
-    });
-  }
+  
 
   const updatedAt = new Date().toISOString();
 
   const lead = await updateLead(
-    client.id,
+    session.clientId,
     cleanText(leadId, 100),
     {
       stage:
@@ -274,7 +251,7 @@ async function handleUpdateLead(req, res, leadId) {
 
   await createActivity({
     id: crypto.randomUUID(),
-    clientId: client.id,
+    clientId: session.clientId,
     leadId: lead.id,
     type: "Updated",
     detail: `Lead updated. Current stage: ${lead.stage}.`,
@@ -761,16 +738,21 @@ if (
       /^\/api\/leads\/([^/]+)$/
     );
 
-    if (
-      req.method === "PATCH" &&
-      match
-    ) {
-      return handleUpdateLead(
-        req,
-        res,
-        match[1]
-      );
-    }
+ if (
+  req.method === "PATCH" &&
+  match
+) {
+  const session = await requireSession(req, res);
+
+  if (!session) return;
+
+  return handleUpdateLead(
+    req,
+    res,
+    match[1],
+    session
+  );
+}   
 if (
   req.method === "GET" &&
   url.pathname === "/api/settings"

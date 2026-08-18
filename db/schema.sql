@@ -92,3 +92,105 @@ create index if not exists idx_sessions_client
 
 create index if not exists idx_sessions_expires
   on sessions(expires_at);
+  -- =========================================================
+-- PEAK MULTI-TENANT FOUNDATION
+-- =========================================================
+
+-- Customer account status and subscription information
+alter table clients
+  add column if not exists status text not null default 'active';
+
+alter table clients
+  add column if not exists plan text not null default 'standard';
+
+alter table clients
+  add column if not exists subscription_status text not null default 'trial';
+
+alter table clients
+  add column if not exists billing_customer_id text;
+
+alter table clients
+  add column if not exists billing_subscription_id text;
+
+
+-- =========================================================
+-- USERS
+-- =========================================================
+create unique index if not exists idx_users_email_lower
+  on users(lower(email));
+create table if not exists users (
+  id uuid primary key default gen_random_uuid(),
+
+  client_id uuid references clients(id) on delete cascade,
+
+  name text not null,
+  email text not null unique,
+  password_salt text not null,
+  password_hash text not null,
+
+  role text not null default 'sales'
+    check (role in (
+      'peak_admin',
+      'owner',
+      'manager',
+      'sales'
+    )),
+
+  status text not null default 'active'
+    check (status in (
+      'active',
+      'invited',
+      'disabled'
+    )),
+
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create unique index if not exists idx_users_email_lower
+  on users(lower(email));
+
+create index if not exists idx_users_client
+  on users(client_id);
+
+create index if not exists idx_users_email
+  on users(email);
+
+
+-- =========================================================
+-- CLIENT SCORING RULES
+-- =========================================================
+
+create table if not exists scoring_rules (
+  id uuid primary key default gen_random_uuid(),
+
+  client_id uuid not null unique
+    references clients(id) on delete cascade,
+
+  immediately integer not null default 30,
+  within_30_days integer not null default 25,
+  one_to_three_months integer not null default 18,
+  three_to_six_months integer not null default 10,
+  researching integer not null default 4,
+
+  ready_to_buy integer not null default 25,
+  actively_comparing integer not null default 20,
+  getting_estimates integer not null default 14,
+  early_research integer not null default 6,
+
+  phone integer not null default 8,
+  notes integer not null default 4,
+
+  high_priority_threshold integer not null default 75,
+  qualified_threshold integer not null default 55,
+
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+
+-- =========================================================
+-- SESSION RELATIONSHIPS
+-- =========================================================
+
+create index if not exists idx_sessions_user_client
+  on sessions(user_id, client_id);
