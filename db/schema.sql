@@ -111,6 +111,9 @@ alter table clients
 
 alter table clients
   add column if not exists billing_subscription_id text;
+  
+alter table sessions
+  alter column client_id drop not null;
 
 
 -- =========================================================

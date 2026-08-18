@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Peak Admin</title>
+
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+
+<body>
+
+  <main class="admin-page">
+
+    <section class="admin-header">
+      <div>
+        <p class="eyebrow">PEAK ADMIN</p>
+        <h1>Customers</h1>
+        <p>
+          Manage Peak customer accounts, subscriptions,
+          users, and platform access.
+        </p>
+      </div>
+
+      <button
+        id="add-customer-button"
+        class="primary-button"
+        type="button"
+      >
+        + Add Customer
+      </button>
+    </section>
+
+
+    <section class="admin-stats">
+
+      <div class="metric-card">
+        <span>Total Customers</span>
+        <strong id="total-customers">0</strong>
+      </div>
+
+      <div class="metric-card">
+        <span>Active</span>
+        <strong id="active-customers">0</strong>
+      </div>
+
+      <div class="metric-card">
+        <span>Trials</span>
+        <strong id="trial-customers">0</strong>
+      </div>
+
+    </section>
+
+
+    <section class="admin-customers">
+
+      <div class="section-heading">
+        <p class="eyebrow">CUSTOMER ACCOUNTS</p>
+        <h2>Peak Customers</h2>
+      </div>
+
+      <div id="admin-message"></div>
+
+      <div
+        id="customer-list"
+        class="customer-list"
+      >
+        Loading customers...
+      </div>
+
+    </section>
+
+  </main>
+  <div id="customer-modal" class="admin-modal hidden">
+
+  <div class="admin-modal-card">
+
+    <div class="admin-modal-header">
+      <div>
+        <p class="eyebrow">NEW CUSTOMER</p>
+        <h2>Create Peak Account</h2>
+      </div>
+
+      <button
+        id="close-customer-modal"
+        type="button"
+        class="text-button"
+      >
+        Close
+      </button>
+    </div>
+
+    <form id="customer-form">
+
+      <label>
+        Company Name
+        <input
+          type="text"
+          name="companyName"
+          required
+        />
+      </label>
+
+      <label>
+        Industry
+        <input
+          type="text"
+          name="industry"
+          placeholder="Plumbing, Roofing, HVAC..."
+        />
+      </label>
+
+      <label>
+        Owner Name
+        <input
+          type="text"
+          name="ownerName"
+          required
+        />
+      </label>
+
+      <label>
+        Owner Email
+        <input
+          type="email"
+          name="ownerEmail"
+          required
+        />
+      </label>
+
+      <label>
+        Temporary Password
+        <input
+          type="password"
+          name="ownerPassword"
+          minlength="10"
+          required
+        />
+      </label>
+
+      <p id="customer-form-status"></p>
+
+      <button
+        type="submit"
+        class="primary-button"
+      >
+        Create Customer
+      </button>
+
+    </form>
+
+  </div>
+
+</div>
+
+  <script src="/admin.js"></script>
+
+</body>
+</html>

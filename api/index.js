@@ -1,6 +1,11 @@
 const crypto = require("crypto");
 
 const {
+  createClient,
+createUser,
+updateScoringRulesByClient,
+  getUserById,
+listClients,
   getUserByEmail,
   getClientBySlug,
   createLead,
@@ -16,11 +21,13 @@ deleteSession,
 getClientById,
 getClientSettingsById,
 updateClientScoringRulesById,
+
 } = require("../lib/repository");
 
 const {
   verifyPassword,
   createSessionToken,
+  hashPassword,
 } = require("../lib/auth");
 
 const { calculateLeadScore } = require("../lib/scoring");
@@ -149,6 +156,156 @@ async function handleCreateLead(req, res) {
       score: savedLead.score,
       tier: savedLead.tier,
       recommendedAction: savedLead.recommendedAction,
+    },
+  });
+}
+async function handleAdminCreateClient(req, res) {
+  const input = await readBody(req);
+
+  const companyName =
+    cleanText(input.companyName, 150);
+
+  const ownerName =
+    cleanText(input.ownerName, 150);
+
+  const ownerEmail =
+    cleanText(input.ownerEmail, 254)
+      .toLowerCase();
+
+  const ownerPassword =
+    String(input.ownerPassword || "");
+
+  const industry =
+    cleanText(input.industry, 100);
+
+  if (
+    !companyName ||
+    !ownerName ||
+    !ownerEmail ||
+    !ownerPassword
+  ) {
+    return sendJson(res, 400, {
+      error:
+        "Company name, owner name, email, and password are required.",
+    });
+  }
+
+  if (!validEmail(ownerEmail)) {
+    return sendJson(res, 400, {
+      error: "A valid owner email is required.",
+    });
+  }
+
+  if (ownerPassword.length < 10) {
+    return sendJson(res, 400, {
+      error:
+        "Owner password must be at least 10 characters.",
+    });
+  }
+
+  const existingUser =
+    await getUserByEmail(ownerEmail);
+
+  if (existingUser) {
+    return sendJson(res, 409, {
+      error:
+        "A user with that email already exists.",
+    });
+  }
+
+  const slug =
+    companyName
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+
+  const existingClient =
+    await getClientBySlug(slug);
+
+  if (existingClient) {
+    return sendJson(res, 409, {
+      error:
+        "A customer with that company name already exists.",
+    });
+  }
+
+  const now = new Date().toISOString();
+
+  const client = await createClient({
+    id: crypto.randomUUID(),
+
+    name: companyName,
+    slug,
+    industry,
+
+    status: "active",
+    plan: "standard",
+    subscriptionStatus: "trial",
+
+    createdAt: now,
+    updatedAt: now,
+  });
+
+  const passwordData =
+    await hashPassword(ownerPassword);
+
+  const owner = await createUser({
+    id: crypto.randomUUID(),
+
+    clientId: client.id,
+
+    name: ownerName,
+    email: ownerEmail,
+
+    role: "owner",
+    status: "active",
+
+    passwordSalt:
+      passwordData.salt,
+
+    passwordHash:
+      passwordData.hash,
+
+    createdAt: now,
+    updatedAt: now,
+  });
+
+  await updateScoringRulesByClient(
+    client.id,
+    {
+      immediately: 30,
+      within30Days: 25,
+      oneToThreeMonths: 18,
+      threeToSixMonths: 10,
+      researching: 4,
+
+      readyToBuy: 25,
+      activelyComparing: 20,
+      gettingEstimates: 14,
+      earlyResearch: 6,
+
+      phone: 8,
+      notes: 4,
+
+      highPriorityThreshold: 75,
+      qualifiedThreshold: 55,
+    }
+  );
+
+  return sendJson(res, 201, {
+    success: true,
+
+    client: {
+      id: client.id,
+      name: client.name,
+      slug: client.slug,
+    },
+
+    owner: {
+      id: owner.id,
+      name: owner.name,
+      email: owner.email,
+      role: owner.role,
     },
   });
 }
@@ -411,6 +568,65 @@ function getCookie(req, name) {
   }
 
   return "";
+}
+async function requirePeakAdmin(req, res) {
+  const session = await requireSession(req, res);
+
+  if (!session) {
+    return null;
+  }
+
+  const user = await getUserById(
+    session.userId
+  );
+
+  if (!user) {
+    sendJson(res, 401, {
+      error: "User account not found.",
+    });
+
+    return null;
+  }
+
+  if (user.role !== "peak_admin") {
+    sendJson(res, 403, {
+      error: "Peak administrator access required.",
+    });
+
+    return null;
+  }
+
+  return {
+    session,
+    user,
+  };
+}
+async function handleAdminClients(res) {
+  const clients = await listClients();
+
+  return sendJson(res, 200, {
+    clients: clients.map((client) => ({
+      id: client.id,
+      name: client.name,
+      slug: client.slug,
+      industry: client.industry || "",
+
+      status:
+        client.status || "active",
+
+      plan:
+        client.plan || "standard",
+
+      subscriptionStatus:
+        client.subscription_status ||
+        client.subscriptionStatus ||
+        "trial",
+
+      createdAt:
+        client.created_at ||
+        client.createdAt,
+    })),
+  });
 }
 
 async function requireSession(req, res) {
@@ -798,6 +1014,42 @@ if (
 ) {
   return handleCreateDemoLead(req, res);
 }
+if (
+  req.method === "GET" &&
+  url.pathname === "/api/admin/clients"
+) {
+  const admin = await requirePeakAdmin(
+    req,
+    res
+  );
+
+  if (!admin) return;
+
+  return handleAdminClients(res);
+}
+
+
+if (
+  req.method === "POST" &&
+  url.pathname === "/api/admin/clients"
+) {
+  const admin = await requirePeakAdmin(
+    req,
+    res
+  );
+
+  if (!admin) return;
+
+  return handleAdminCreateClient(
+    req,
+    res
+  );
+}
+
+  if (!admin) return;
+
+  return handleAdminClients(res);
+
     return sendJson(res, 404, {
       error: "Not found.",
     });
