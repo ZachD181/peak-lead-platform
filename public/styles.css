@@ -1137,3 +1137,31 @@ footer .brand {
 
   color: inherit;
 }
+.customer-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.customer-card {
+  display: grid;
+  gap: 18px;
+
+  padding: 22px;
+
+  border-radius: 14px;
+
+  border: 1px solid rgba(255,255,255,0.1);
+
+  background: rgba(255,255,255,0.03);
+}
+.open-customer-button {
+  opacity: 1;
+  cursor: pointer;
+}
+
+.open-customer-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

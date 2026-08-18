@@ -21,6 +21,8 @@ deleteSession,
 getClientById,
 getClientSettingsById,
 updateClientScoringRulesById,
+getUsersByClient,
+getScoringRulesByClient,
 
 } = require("../lib/repository");
 
@@ -853,6 +855,53 @@ async function handleDemo(res) {
     },
   });
 }
+async function handleAdminGetClientDetails(
+  res,
+  clientId
+) {
+  const client =
+    await getClientById(clientId);
+
+  if (!client) {
+    return sendJson(res, 404, {
+      error: "Customer not found.",
+    });
+  }
+
+  const users =
+    await getUsersByClient(clientId);
+
+  const scoringRules =
+    await getScoringRulesByClient(clientId);
+
+  return sendJson(res, 200, {
+    client: {
+      id: client.id,
+      name: client.name,
+      slug: client.slug,
+      industry:
+        client.industry || "",
+      status:
+        client.status || "active",
+      plan:
+        client.plan || "standard",
+      subscriptionStatus:
+        client.subscription_status ||
+        client.subscriptionStatus ||
+        "trial",
+    },
+
+    users: users.map((user) => ({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      status: user.status,
+    })),
+
+    scoringRules,
+  });
+}
 async function handleCreateDemoLead(req, res) {
   const input = await readBody(req);
 
@@ -914,13 +963,92 @@ async function handleCreateDemoLead(req, res) {
   });
 }
 
+
 module.exports = async function handler(req, res) {
   try {
     const url = new URL(
       req.url,
       "http://localhost"
     );
+ async function handleAdminGetClient(
+  res,
+  clientId
+) {
+  const client =
+    await getClientById(clientId);
 
+  if (!client) {
+    return sendJson(res, 404, {
+      error: "Customer not found.",
+    });
+  }
+
+  return sendJson(res, 200, {
+    client: {
+      id: client.id,
+      name: client.name,
+      slug: client.slug,
+      industry:
+        client.industry || "",
+
+      status:
+        client.status || "active",
+
+      plan:
+        client.plan || "standard",
+
+      subscriptionStatus:
+        client.subscription_status ||
+        client.subscriptionStatus ||
+        "trial",
+    },
+  });
+}   
+async function handleAdminUpdateClientStatus(
+  req,
+  res,
+  clientId
+) {
+  const input = await readBody(req);
+
+  const status = cleanText(
+    input.status,
+    20
+  );
+
+  if (
+    status !== "active" &&
+    status !== "suspended"
+  ) {
+    return sendJson(res, 400, {
+      error:
+        "Status must be active or suspended.",
+    });
+  }
+
+  const client =
+    await updateClientStatus(
+      clientId,
+      status
+    );
+
+  if (!client) {
+    return sendJson(res, 404, {
+      error: "Customer not found.",
+    });
+  }
+
+  return sendJson(res, 200, {
+    success: true,
+
+    client: {
+      id: client.id,
+      name: client.name,
+      status:
+        client.status || status,
+    },
+  });
+}
     if (
       req.method === "GET" &&
       url.pathname === "/api/health"
@@ -1044,6 +1172,52 @@ if (
     req,
     res
   );
+}
+const adminStatusMatch =
+  url.pathname.match(
+    /^\/api\/admin\/clients\/([^/]+)\/status$/
+  );
+
+if (
+  req.method === "PATCH" &&
+  adminStatusMatch
+) {
+  const admin =
+    await requirePeakAdmin(
+      req,
+      res
+    );
+
+  if (!admin) return;
+
+  return handleAdminUpdateClientStatus(
+    req,
+    res,
+    adminStatusMatch[1]
+  );
+}
+const adminClientMatch =
+  url.pathname.match(
+    /^\/api\/admin\/clients\/([^/]+)$/
+  );
+
+if (
+  req.method === "GET" &&
+  adminClientMatch
+) {
+  const admin =
+    await requirePeakAdmin(
+      req,
+      res
+    );
+
+  if (!admin) return;
+
+ return handleAdminGetClientDetails(
+  res,
+  adminClientMatch[1]
+);
+
 }
 
   if (!admin) return;

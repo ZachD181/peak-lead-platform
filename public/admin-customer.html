@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Peak Customer Admin</title>
+
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+
+<body>
+
+  <main class="admin-page">
+
+    <section class="admin-header">
+      <div>
+        <a href="/admin.html" class="text-button">
+          ← Back to Customers
+        </a>
+
+        <p class="eyebrow">
+          PEAK CUSTOMER ADMIN
+        </p>
+
+        <h1 id="customer-name">
+          Loading customer...
+        </h1>
+
+        <p id="customer-industry"></p>
+      </div>
+    </section>
+
+
+    <section class="admin-stats">
+
+      <div class="metric-card">
+        <span>Status</span>
+        <strong id="customer-status">—</strong>
+      </div>
+
+      <div class="metric-card">
+        <span>Plan</span>
+        <strong id="customer-plan">—</strong>
+      </div>
+
+      <div class="metric-card">
+        <span>Subscription</span>
+        <strong id="customer-subscription">—</strong>
+      </div>
+
+    </section>
+
+
+    <section class="admin-customers">
+
+      <div class="section-heading">
+        <p class="eyebrow">ACCOUNT</p>
+        <h2>Company Details</h2>
+      </div>
+
+      <div id="customer-detail-message"></div>
+
+      <div class="customer-card">
+        <p>
+          <strong>Slug:</strong>
+          <span id="customer-slug">—</span>
+        </p>
+
+        <p>
+          <strong>Customer ID:</strong>
+          <span id="customer-id">—</span>
+        </p>
+      </div>
+
+    </section>
+    <section class="admin-customers">
+
+  <div class="section-heading">
+    <p class="eyebrow">USERS</p>
+    <h2>Customer Team</h2>
+  </div>
+
+  <div
+    id="customer-users"
+    class="customer-list"
+  >
+    Loading users...
+  </div>
+
+</section>
+
+
+<section class="admin-customers">
+
+  <div class="section-heading">
+    <p class="eyebrow">SCORING RULES</p>
+    <h2>Lead Scoring Configuration</h2>
+  </div>
+
+  <div
+    id="customer-scoring"
+    class="customer-card"
+  >
+    Loading scoring rules...
+  </div>
+
+</section>
+
+  </main>
+
+  <script src="/admin-customer.js"></script>
+
+</body>
+</html>

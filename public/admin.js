@@ -49,14 +49,12 @@ function renderCustomers(clients) {
         client.subscriptionStatus === "trial"
     ).length;
 
-
   if (!clients.length) {
     customerList.innerHTML =
       "<p>No customers yet.</p>";
 
     return;
   }
-
 
   customerList.innerHTML =
     clients
@@ -80,13 +78,10 @@ function renderCustomers(clients) {
               </p>
             </div>
 
-
             <div class="customer-status">
 
               <span class="status-badge">
-                ${escapeHtml(
-                  client.status
-                )}
+                ${escapeHtml(client.status)}
               </span>
 
               <span class="status-badge">
@@ -96,10 +91,33 @@ function renderCustomers(clients) {
               </span>
 
               <span class="status-badge">
-                ${escapeHtml(
-                  client.plan
-                )}
+                ${escapeHtml(client.plan)}
               </span>
+
+            </div>
+
+            <div class="customer-actions">
+
+              <button
+                class="secondary-button open-customer-button"
+                type="button"
+                data-client-id="${escapeHtml(client.id)}"
+              >
+                Open Customer
+              </button>
+
+              <button
+                class="text-button client-status-button"
+                type="button"
+                data-client-id="${escapeHtml(client.id)}"
+                data-status="${escapeHtml(client.status)}"
+              >
+                ${
+                  client.status === "suspended"
+                    ? "Activate"
+                    : "Suspend"
+                }
+              </button>
 
             </div>
 
@@ -107,9 +125,87 @@ function renderCustomers(clients) {
         `
       )
       .join("");
+
+  bindCustomerActions();
 }
+function bindCustomerActions() {
+  document
+    .querySelectorAll(".client-status-button")
+    .forEach((button) => {
+      button.addEventListener(
+        "click",
+        async () => {
+          const clientId =
+            button.dataset.clientId;
+
+          const currentStatus =
+            button.dataset.status;
+
+          const nextStatus =
+            currentStatus === "suspended"
+              ? "active"
+              : "suspended";
+
+          button.disabled = true;
+
+          try {
+            const response =
+              await fetch(
+                `/api/admin/clients/${clientId}/status`,
+                {
+                  method: "PATCH",
+
+                  headers: {
+                    "Content-Type":
+                      "application/json",
+                  },
+
+                  body: JSON.stringify({
+                    status: nextStatus,
+                  }),
+                }
+              );
+
+            const data =
+              await response.json();
+
+            if (!response.ok) {
+              throw new Error(
+                data.error ||
+                "Unable to update customer."
+              );
+            }
+
+            await loadCustomers();
+
+          } catch (error) {
+            adminMessage.textContent =
+              error.message;
+
+            button.disabled = false;
+          }
+        }
+      );
+    });
 
 
+  document
+    .querySelectorAll(
+      ".open-customer-button"
+    )
+    .forEach((button) => {
+      button.addEventListener(
+        "click",
+        () => {
+          const clientId =
+            button.dataset.clientId;
+
+         window.location.href =
+  `/admin-customer.html?id=${encodeURIComponent(clientId)}`;
+        }
+      );
+    });
+}
 async function loadCustomers() {
   try {
     const response =
