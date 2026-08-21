@@ -95,10 +95,7 @@
           );
         }
 
-        sessionStorage.setItem(
-          "peak-session-token",
-          result.token
-        );
+       
 
         sessionStorage.setItem(
           "peak-user",
@@ -107,7 +104,11 @@
 
         status.textContent = "Login successful.";
 
-        window.location.href = "/";
+        if (result.user.role === "peak_admin") {
+  window.location.href = "/admin.html";
+} else {
+  window.location.href = "/";
+}
       } catch (error) {
         status.textContent = error.message;
       }

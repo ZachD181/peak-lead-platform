@@ -50,10 +50,111 @@ const message =
     "customer-users"
   );
 
-const customerScoring =
+  const customerScoringForm =
   document.getElementById(
-    "customer-scoring"
+    "customer-scoring-form"
   );
+
+const scoringSaveStatus =
+  document.getElementById(
+    "scoring-save-status"
+  );
+
+  customerScoringForm.addEventListener(
+  "submit",
+  async (event) => {
+    event.preventDefault();
+
+    scoringSaveStatus.textContent =
+      "Saving...";
+
+    const formData =
+      new FormData(customerScoringForm);
+
+    const numberValue = (name) =>
+      Number(formData.get(name) || 0);
+
+    const scoringRules = {
+      immediately:
+        numberValue("immediately"),
+
+      within30Days:
+        numberValue("within30Days"),
+
+      oneToThreeMonths:
+        numberValue("oneToThreeMonths"),
+
+      threeToSixMonths:
+        numberValue("threeToSixMonths"),
+
+      researching:
+        numberValue("researching"),
+
+      readyToBuy:
+        numberValue("readyToBuy"),
+
+      activelyComparing:
+        numberValue("activelyComparing"),
+
+      gettingEstimates:
+        numberValue("gettingEstimates"),
+
+      earlyResearch:
+        numberValue("earlyResearch"),
+
+      phone:
+        numberValue("phone"),
+
+      notes:
+        numberValue("notes"),
+
+      highPriorityThreshold:
+        numberValue(
+          "highPriorityThreshold"
+        ),
+
+      qualifiedThreshold:
+        numberValue(
+          "qualifiedThreshold"
+        ),
+    };
+
+    try {
+      const response = await fetch(
+        `/api/admin/clients/${encodeURIComponent(clientId)}/scoring`,
+        {
+          method: "PATCH",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+
+          body: JSON.stringify({
+            scoringRules,
+          }),
+        }
+      );
+
+      const data =
+        await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error ||
+          "Unable to save scoring rules."
+        );
+      }
+
+      scoringSaveStatus.textContent =
+        "Scoring rules saved.";
+
+    } catch (error) {
+      scoringSaveStatus.textContent =
+        error.message;
+    }
+  }
+);
  
 
 async function loadCustomer() {
@@ -90,6 +191,89 @@ async function loadCustomer() {
     const client = data.client;
     const users = data.users || [];
     const rules = data.scoringRules || {};
+    const setValue = (name, value) => {
+  const input =
+    customerScoringForm.elements[name];
+
+  if (input) {
+    input.value =
+      value ?? "";
+  }
+};
+
+setValue(
+  "immediately",
+  rules.immediately
+);
+
+setValue(
+  "within30Days",
+  rules.within_30_days ??
+  rules.within30Days
+);
+
+setValue(
+  "oneToThreeMonths",
+  rules.one_to_three_months ??
+  rules.oneToThreeMonths
+);
+
+setValue(
+  "threeToSixMonths",
+  rules.three_to_six_months ??
+  rules.threeToSixMonths
+);
+
+setValue(
+  "researching",
+  rules.researching
+);
+
+setValue(
+  "readyToBuy",
+  rules.ready_to_buy ??
+  rules.readyToBuy
+);
+
+setValue(
+  "activelyComparing",
+  rules.actively_comparing ??
+  rules.activelyComparing
+);
+
+setValue(
+  "gettingEstimates",
+  rules.getting_estimates ??
+  rules.gettingEstimates
+);
+
+setValue(
+  "earlyResearch",
+  rules.early_research ??
+  rules.earlyResearch
+);
+
+setValue(
+  "phone",
+  rules.phone
+);
+
+setValue(
+  "notes",
+  rules.notes
+);
+
+setValue(
+  "highPriorityThreshold",
+  rules.high_priority_threshold ??
+  rules.highPriorityThreshold
+);
+
+setValue(
+  "qualifiedThreshold",
+  rules.qualified_threshold ??
+  rules.qualifiedThreshold
+);
 
     customerName.textContent =
       client.name;

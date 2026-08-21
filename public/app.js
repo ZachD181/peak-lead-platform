@@ -28,31 +28,56 @@ const demoModeBanner =
 
 const resetDemoButton =
   document.getElementById("reset-demo-button");
-
+const adminCustomersLink =
+  document.getElementById(
+    "admin-customers-link"
+  );
 async function updateAuthUI() {
   try {
-    const response = await fetch("/api/settings");
+    const response = await fetch("/api/me");
 
     const loggedIn = response.ok;
 
+    let user = null;
+
+    if (loggedIn) {
+      const data = await response.json();
+
+      user = data.user || null;
+    }
+
     if (demoModeBanner) {
-  demoModeBanner.classList.toggle(
-    "hidden",
-    loggedIn
-  );
-}
+      demoModeBanner.classList.toggle(
+        "hidden",
+        loggedIn
+      );
+    }
 
     if (loginLink) {
-      loginLink.classList.toggle("hidden", loggedIn);
+      loginLink.classList.toggle(
+        "hidden",
+        loggedIn
+      );
     }
 
     if (logoutButton) {
-      logoutButton.classList.toggle("hidden", !loggedIn);
+      logoutButton.classList.toggle(
+        "hidden",
+        !loggedIn
+      );
     }
 
-    return loggedIn;
+    if (adminCustomersLink) {
+      adminCustomersLink.classList.toggle(
+        "hidden",
+        user?.role !== "peak_admin"
+      );
+    }
+
+    return user;
+
   } catch {
-    return false;
+    return null;
   }
 }
 logoutButton?.addEventListener(
@@ -115,7 +140,7 @@ async function showAdminControls() {
   });
 
   try {
-    const response = await fetch("/api/settings");
+    const response = await fetch("/api/me");
 
     if (!response.ok) {
       return false;
@@ -134,48 +159,74 @@ async function showAdminControls() {
 
 async function loadDashboard() {
   try {
-    const authResponse = await fetch("/api/settings");
+    const authResponse =
+      await fetch("/api/me");
 
-    const endpoint = authResponse.ok
-      ? "/api/pipeline"
-      : "/api/demo";
+    let currentUser = null;
 
-    const response = await fetch(endpoint);
+    if (authResponse.ok) {
+      const authData =
+        await authResponse.json();
 
-    const data = await response.json();
-    if (!authResponse.ok) {
-  const visitorLeads =
-    getVisitorDemoLeads();
+      currentUser =
+        authData.user || null;
+    }
 
-  data.leads = [
-    ...visitorLeads,
-    ...(data.leads || []),
-  ];
+    const isCustomerUser =
+      currentUser &&
+      currentUser.clientId;
 
-  data.metrics = {
-    total: data.leads.length,
+    const endpoint =
+      isCustomerUser
+        ? "/api/pipeline"
+        : "/api/demo";
 
-    highPriority: data.leads.filter(
-      (lead) => Number(lead.score) >= 75
-    ).length,
+    const response =
+      await fetch(endpoint);
 
-    qualified: data.leads.filter(
-      (lead) => Number(lead.score) >= 55
-    ).length,
-
-    active: data.leads.filter(
-      (lead) =>
-        !["Closed", "Lost"].includes(
-          lead.stage
-        )
-    ).length,
-  };
-}
+    const data =
+      await response.json();
 
     if (!response.ok) {
       throw new Error(
-        data.error || "Unable to load dashboard."
+        data.error ||
+        "Unable to load dashboard."
       );
+    }
+
+    if (!isCustomerUser) {
+      const visitorLeads =
+        getVisitorDemoLeads();
+
+      data.leads = [
+        ...visitorLeads,
+        ...(data.leads || []),
+      ];
+
+      data.metrics = {
+        total:
+          data.leads.length,
+
+        highPriority:
+          data.leads.filter(
+            (lead) =>
+              Number(lead.score) >= 75
+          ).length,
+
+        qualified:
+          data.leads.filter(
+            (lead) =>
+              Number(lead.score) >= 55
+          ).length,
+
+        active:
+          data.leads.filter(
+            (lead) =>
+              !["Closed", "Lost"].includes(
+                lead.stage
+              )
+          ).length,
+      };
     }
 
     renderMetrics(
@@ -183,7 +234,9 @@ async function loadDashboard() {
       data.leads || []
     );
 
-    renderPipeline(data.leads || []);
+    renderPipeline(
+      data.leads || []
+    );
 
     renderCampaignPerformance(
       data.leads || []
@@ -192,8 +245,12 @@ async function loadDashboard() {
     renderMorningBrief(
       data.leads || []
     );
+
   } catch (error) {
-    console.error("Dashboard error:", error);
+    console.error(
+      "Dashboard error:",
+      error
+    );
   }
 }
 
@@ -543,9 +600,9 @@ function renderMorningBrief(leads) {
 }
 async function loadSettings() {
   try {
-    const response = await fetch(
-      "/api/settings?client=peak-demo"
-    );
+   const response = await fetch(
+  "/api/settings?client=peak-demo"
+);
 
     const data = await response.json();
 
@@ -659,7 +716,7 @@ if (gclid && !utmSource) {
 
   try {
     const authCheck =
-  await fetch("/api/settings");
+  await fetch("/api/me");
 
 const leadEndpoint = authCheck.ok
   ? "/api/leads"
@@ -798,10 +855,10 @@ scoringSettingsForm?.addEventListener(
     };
 
     try {
-      const response = await fetch(
-        "/api/settings",
-        {
-          method: "PATCH",
+     const response = await fetch(
+  "/api/settings",
+  {
+    method: "PATCH",
 
           headers: {
             "Content-Type": "application/json",
@@ -838,8 +895,7 @@ scoringSettingsForm?.addEventListener(
     }
   }
 );
-
-     
+    
 loadDashboard();
 
 showAdminControls().then((isAdmin) => {

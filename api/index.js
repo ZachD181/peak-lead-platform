@@ -312,6 +312,40 @@ async function handleAdminCreateClient(req, res) {
   });
 }
 
+async function handleAdminUpdateScoringRules(
+  req,
+  res,
+  clientId
+) {
+  const input = await readBody(req);
+
+  const rules =
+    input.scoringRules;
+
+  if (!rules || typeof rules !== "object") {
+    return sendJson(res, 400, {
+      error: "Valid scoring rules are required.",
+    });
+  }
+
+  const savedRules =
+    await updateScoringRulesByClient(
+      clientId,
+      rules
+    );
+
+  if (!savedRules) {
+    return sendJson(res, 404, {
+      error: "Customer not found.",
+    });
+  }
+
+  return sendJson(res, 200, {
+    success: true,
+    scoringRules: savedRules,
+  });
+}
+
 async function handlePipeline(req, res, session) {
   const client = await getClientById(
     session.clientId
@@ -1004,6 +1038,38 @@ module.exports = async function handler(req, res) {
     },
   });
 }   
+
+ async function handleCurrentUser(
+  req,
+  res
+) {
+  const session =
+    await requireSession(req, res);
+
+  if (!session) return;
+
+  const user =
+    await getUserById(session.userId);
+
+  if (!user) {
+    return sendJson(res, 401, {
+      error: "User account not found.",
+    });
+  }
+
+  return sendJson(res, 200, {
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      status: user.status,
+      clientId:
+        user.clientId || null,
+    },
+  });
+}
+
 async function handleAdminUpdateClientStatus(
   req,
   res,
@@ -1025,6 +1091,7 @@ async function handleAdminUpdateClientStatus(
         "Status must be active or suspended.",
     });
   }
+ 
 
   const client =
     await updateClientStatus(
@@ -1210,20 +1277,50 @@ if (
       req,
       res
     );
-
   if (!admin) return;
 
- return handleAdminGetClientDetails(
-  res,
-  adminClientMatch[1]
-);
+  return handleAdminGetClientDetails(
+    res,
+    adminClientMatch[1]
+  );
+  
+
+ 
 
 }
 
+   const adminScoringMatch =
+  url.pathname.match(
+    /^\/api\/admin\/clients\/([^/]+)\/scoring$/
+  );
+
+if (
+  req.method === "PATCH" &&
+  adminScoringMatch
+) {
+  const admin =
+    await requirePeakAdmin(
+      req,
+      res
+    );
+
   if (!admin) return;
 
-  return handleAdminClients(res);
-
+  return handleAdminUpdateScoringRules(
+    req,
+    res,
+    adminScoringMatch[1]
+  );
+}
+if (
+  req.method === "GET" &&
+  url.pathname === "/api/me"
+) {
+  return handleCurrentUser(
+    req,
+    res
+  );
+}
     return sendJson(res, 404, {
       error: "Not found.",
     });

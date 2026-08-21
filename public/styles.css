@@ -1165,3 +1165,10 @@ footer .brand {
   opacity: 0.5;
   cursor: not-allowed;
 }
+.admin-nav {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
