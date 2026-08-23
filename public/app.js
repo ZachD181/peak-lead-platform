@@ -806,80 +806,88 @@ scoringSettingsForm?.addEventListener(
     settingsStatus.textContent =
       "Saving scoring rules...";
 
-    const scoringRules = {
-      urgency: {
-        "Immediately": Number(
-          document.getElementById(
-            "score-immediately"
-          ).value
-        ),
 
-        "Within 30 days": Number(
-          document.getElementById(
-            "score-30-days"
-          ).value
-        ),
+const scoringRules = {
+  immediately:
+    Number(
+      document.getElementById(
+        "score-immediately"
+      ).value
+    ),
 
-        "1-3 months": Number(
-          document.getElementById(
-            "score-1-3"
-          ).value
-        ),
+  within30Days:
+    Number(
+      document.getElementById(
+        "score-30-days"
+      ).value
+    ),
 
-        "3-6 months": Number(
-          document.getElementById(
-            "score-3-6"
-          ).value
-        ),
+  oneToThreeMonths:
+    Number(
+      document.getElementById(
+        "score-1-3"
+      ).value
+    ),
 
-        "Just researching": Number(
-          document.getElementById(
-            "score-researching"
-          ).value
-        ),
-      },
+  threeToSixMonths:
+    Number(
+      document.getElementById(
+        "score-3-6"
+      ).value
+    ),
 
-      readiness: {
-        "Ready to buy": Number(
-          document.getElementById(
-            "score-ready"
-          ).value
-        ),
+  researching:
+    Number(
+      document.getElementById(
+        "score-researching"
+      ).value
+    ),
 
-        "Actively comparing": Number(
-          document.getElementById(
-            "score-comparing"
-          ).value
-        ),
+  readyToBuy:
+    Number(
+      document.getElementById(
+        "score-ready"
+      ).value
+    ),
 
-        "Getting estimates": Number(
-          document.getElementById(
-            "score-estimates"
-          ).value
-        ),
+  activelyComparing:
+    Number(
+      document.getElementById(
+        "score-comparing"
+      ).value
+    ),
 
-        "Early research": Number(
-          document.getElementById(
-            "score-early"
-          ).value
-        ),
-      },
+  gettingEstimates:
+    Number(
+      document.getElementById(
+        "score-estimates"
+      ).value
+    ),
 
-      contact: {
-        phone: Number(
-          document.getElementById(
-            "score-phone"
-          ).value
-        ),
+  earlyResearch:
+    Number(
+      document.getElementById(
+        "score-early"
+      ).value
+    ),
 
-        notes: Number(
-          document.getElementById(
-            "score-notes"
-          ).value
-        ),
-      },
-    };
+  phone:
+    Number(
+      document.getElementById(
+        "score-phone"
+      ).value
+    ),
 
+  notes:
+    Number(
+      document.getElementById(
+        "score-notes"
+      ).value
+    ),
+
+  highPriorityThreshold: 75,
+  qualifiedThreshold: 55,
+};
     try {
      const response = await fetch(
   "/api/settings",
