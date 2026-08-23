@@ -23,6 +23,7 @@ getClientSettingsById,
 updateClientScoringRulesById,
 getUsersByClient,
 getScoringRulesByClient,
+updateClientStatus,
 
 } = require("../lib/repository");
 
@@ -75,8 +76,25 @@ function validEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
-async function handleCreateLead(req, res) {
+async function handleCreateLead(
+  req,
+  res,
+  session
+) {
   const input = await readBody(req);
+  const client =
+  await getClientById(session.clientId);
+
+if (!client) {
+  return sendJson(res, 404, {
+    error: "Client account not found.",
+  });
+}
+
+const scoringRules =
+  await getScoringRulesByClient(
+    session.clientId
+  );
 
   
 
@@ -96,16 +114,16 @@ async function handleCreateLead(req, res) {
   }
   
 
-  const scoring = calculateLeadScore(
+ const scoring = calculateLeadScore(
   input,
-  client.scoringRules
+  scoringRules
 );
 
   const now = new Date().toISOString();
 
   const lead = {
     id: crypto.randomUUID(),
-    clientId: client.id,
+    clientId: session.clientId,
 
     name,
     email,
@@ -144,7 +162,7 @@ async function handleCreateLead(req, res) {
 
   await createActivity({
     id: crypto.randomUUID(),
-    clientId: client.id,
+    clientId: session.clientId,
     leadId: savedLead.id,
     type: "Captured",
     detail: `Lead scored ${savedLead.score} and classified as ${savedLead.tier}.`,
@@ -254,7 +272,7 @@ async function handleAdminCreateClient(req, res) {
   const owner = await createUser({
     id: crypto.randomUUID(),
 
-    clientId: client.id,
+    clientId: session.clientId,
 
     name: ownerName,
     email: ownerEmail,
@@ -273,7 +291,7 @@ async function handleAdminCreateClient(req, res) {
   });
 
   await updateScoringRulesByClient(
-    client.id,
+    session.clientId,
     {
       immediately: 30,
       within30Days: 25,
@@ -298,7 +316,7 @@ async function handleAdminCreateClient(req, res) {
     success: true,
 
     client: {
-      id: client.id,
+      id: session.clientId,
       name: client.name,
       slug: client.slug,
     },
@@ -368,7 +386,7 @@ async function handlePipeline(req, res, session) {
 
   return sendJson(res, 200, {
     client: {
-      id: client.id,
+      id: session.clientId,
       name: client.name,
       slug: client.slug,
     },
@@ -486,23 +504,25 @@ async function handleUpdateSettings(
     });
   }
 
-  const client =
-    await updateClientScoringRulesById(
-      session.clientId,
-      rules
-    );
+ const savedRules =
+  await updateScoringRulesByClient(
+    session.clientId,
+    rules
+  );
 
-  if (!client) {
-    return sendJson(res, 404, {
-      error: "Client account not found.",
-    });
-  }
-
-  return sendJson(res, 200, {
-    success: true,
-    scoringRules: client.scoringRules,
+if (!savedRules) {
+  return sendJson(res, 404, {
+    error: "Client account not found.",
   });
 }
+
+return sendJson(res, 200, {
+  success: true,
+  scoringRules: savedRules,
+});
+
+}
+
 async function handleLogin(req, res) {
   const input = await readBody(req);
 
@@ -910,7 +930,7 @@ async function handleAdminGetClientDetails(
 
   return sendJson(res, 200, {
     client: {
-      id: client.id,
+      id: clientId,
       name: client.name,
       slug: client.slug,
       industry:
@@ -1019,7 +1039,7 @@ module.exports = async function handler(req, res) {
 
   return sendJson(res, 200, {
     client: {
-      id: client.id,
+      id: clientId,
       name: client.name,
       slug: client.slug,
       industry:
@@ -1109,7 +1129,7 @@ async function handleAdminUpdateClientStatus(
     success: true,
 
     client: {
-      id: client.id,
+      id: clientId,
       name: client.name,
       status:
         client.status || status,
@@ -1127,12 +1147,22 @@ async function handleAdminUpdateClientStatus(
       });
     }
 
-    if (
-      req.method === "POST" &&
-      url.pathname === "/api/leads"
-    ) {
-      return handleCreateLead(req, res);
-    }
+   if (
+  req.method === "POST" &&
+  url.pathname === "/api/leads"
+) {
+  const session =
+    await requireSession(req, res);
+
+  if (!session) return;
+
+
+return handleCreateLead(
+  req,
+  res,
+  session
+);
+}
 
 if (
   req.method === "GET" &&

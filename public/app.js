@@ -600,11 +600,23 @@ function renderMorningBrief(leads) {
 }
 async function loadSettings() {
   try {
-   const response = await fetch(
-  "/api/settings?client=peak-demo"
-);
+   const authResponse = await fetch("/api/me");
 
-    const data = await response.json();
+if (!authResponse.ok) {
+  return;
+}
+
+const authData = await authResponse.json();
+
+const user = authData.user;
+
+if (!user || !user.clientId) {
+  return;
+}
+
+const response = await fetch("/api/settings");
+
+const data = await response.json();
 
     if (!response.ok) {
       throw new Error(
@@ -616,39 +628,53 @@ async function loadSettings() {
 
     if (!rules) return;
 
-    document.getElementById("score-immediately").value =
-      rules.urgency["Immediately"];
+  document.getElementById("score-immediately").value =
+  rules.immediately ?? 30;
 
-    document.getElementById("score-30-days").value =
-      rules.urgency["Within 30 days"];
+document.getElementById("score-30-days").value =
+  rules.within30Days ??
+  rules.within_30_days ??
+  25;
 
-    document.getElementById("score-1-3").value =
-      rules.urgency["1-3 months"];
+document.getElementById("score-1-3").value =
+  rules.oneToThreeMonths ??
+  rules.one_to_three_months ??
+  18;
 
-    document.getElementById("score-3-6").value =
-      rules.urgency["3-6 months"];
+document.getElementById("score-3-6").value =
+  rules.threeToSixMonths ??
+  rules.three_to_six_months ??
+  10;
 
-    document.getElementById("score-researching").value =
-      rules.urgency["Just researching"];
+document.getElementById("score-researching").value =
+  rules.researching ?? 4;
 
-    document.getElementById("score-ready").value =
-      rules.readiness["Ready to buy"];
+document.getElementById("score-ready").value =
+  rules.readyToBuy ??
+  rules.ready_to_buy ??
+  25;
 
-    document.getElementById("score-comparing").value =
-      rules.readiness["Actively comparing"];
+document.getElementById("score-comparing").value =
+  rules.activelyComparing ??
+  rules.actively_comparing ??
+  20;
 
-    document.getElementById("score-estimates").value =
-      rules.readiness["Getting estimates"];
+document.getElementById("score-estimates").value =
+  rules.gettingEstimates ??
+  rules.getting_estimates ??
+  14;
 
-    document.getElementById("score-early").value =
-      rules.readiness["Early research"];
+document.getElementById("score-early").value =
+  rules.earlyResearch ??
+  rules.early_research ??
+  6;
 
-    document.getElementById("score-phone").value =
-      rules.contact.phone;
+document.getElementById("score-phone").value =
+  rules.phone ?? 8;
 
-    document.getElementById("score-notes").value =
-      rules.contact.notes;
-
+document.getElementById("score-notes").value =
+  rules.notes ?? 4;
+  
     const clientBadge =
       document.querySelector(".settings-client");
 

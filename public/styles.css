@@ -1172,3 +1172,30 @@ footer .brand {
   margin-bottom: 24px;
   flex-wrap: wrap;
 }
+/* Peak Admin - Open Customer buttons */
+.open-customer-button {
+  background: #dfff00;
+  color: #000;
+  border: 1px solid #dfff00;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.open-customer-button:hover {
+  background: #000;
+  color: #dfff00;
+  border-color: #dfff00;
+}
+/* Peak Admin - Open Customer */
+.open-customer-button {
+  background: #dfff00;
+  color: #000;
+  border: 1px solid #dfff00;
+  font-weight: 700;
+}
+
+.open-customer-button:hover {
+  background: #000;
+  color: #dfff00;
+  border-color: #dfff00;
+}
