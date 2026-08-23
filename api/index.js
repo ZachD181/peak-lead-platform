@@ -272,7 +272,7 @@ async function handleAdminCreateClient(req, res) {
   const owner = await createUser({
     id: crypto.randomUUID(),
 
-    clientId: session.clientId,
+    clientId: client.id,
 
     name: ownerName,
     email: ownerEmail,
@@ -291,7 +291,7 @@ async function handleAdminCreateClient(req, res) {
   });
 
   await updateScoringRulesByClient(
-    session.clientId,
+    client.id,
     {
       immediately: 30,
       within30Days: 25,
@@ -316,7 +316,7 @@ async function handleAdminCreateClient(req, res) {
     success: true,
 
     client: {
-      id: session.clientId,
+      id: client.id,
       name: client.name,
       slug: client.slug,
     },
