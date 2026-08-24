@@ -577,6 +577,11 @@ await createSession({
   createdAt: now.toISOString(),
 });
 
+const secureCookie =
+  process.env.NODE_ENV === "production"
+    ? ["Secure"]
+    : [];
+
 res.setHeader(
   "Set-Cookie",
   [
@@ -584,6 +589,7 @@ res.setHeader(
     "HttpOnly",
     "Path=/",
     "SameSite=Lax",
+    ...secureCookie,
     `Max-Age=${60 * 60 * 8}`,
   ].join("; ")
 );
@@ -721,16 +727,23 @@ async function handleLogout(req, res) {
     await deleteSession(sessionId);
   }
 
+  const secureCookie =
+  process.env.NODE_ENV === "production"
+    ? ["Secure"]
+    : [];
+
+
   res.setHeader(
-    "Set-Cookie",
-    [
-      "peak_session=",
-      "HttpOnly",
-      "Path=/",
-      "SameSite=Lax",
-      "Max-Age=0",
-    ].join("; ")
-  );
+  "Set-Cookie",
+  [
+    "peak_session=",
+    "HttpOnly",
+    "Path=/",
+    "SameSite=Lax",
+    ...secureCookie,
+    "Max-Age=0",
+  ].join("; ")
+);
 
   return sendJson(res, 200, {
     success: true,

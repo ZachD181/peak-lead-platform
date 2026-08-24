@@ -119,8 +119,7 @@ alter table sessions
 -- =========================================================
 -- USERS
 -- =========================================================
-create unique index if not exists idx_users_email_lower
-  on users(lower(email));
+
 create table if not exists users (
   id uuid primary key default gen_random_uuid(),
 
