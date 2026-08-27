@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+  <title>Create Your Peak Account</title>
+
+  <link
+    rel="stylesheet"
+    href="/styles.css"
+  />
+</head>
+
+<body>
+  <main class="auth-page">
+    <section class="auth-card">
+      <h1>Create Your Peak Account</h1>
+
+      <p class="auth-subtitle">
+        Start your Peak Lead Platform trial.
+      </p>
+
+      <form id="register-form">
+        <label>
+          Business Name
+          <input
+            id="business-name"
+            name="businessName"
+            type="text"
+            required
+          />
+        </label>
+
+        <label>
+          Industry
+          <input
+            id="industry"
+            name="industry"
+            type="text"
+            required
+          />
+        </label>
+
+        <label>
+          Your Name
+          <input
+            id="owner-name"
+            name="ownerName"
+            type="text"
+            required
+          />
+        </label>
+
+        <label>
+          Email
+          <input
+            id="owner-email"
+            name="ownerEmail"
+            type="email"
+            required
+          />
+        </label>
+
+        <label>
+          Password
+          <input
+            id="owner-password"
+            name="ownerPassword"
+            type="password"
+            minlength="10"
+            required
+          />
+        </label>
+
+        <button
+          type="submit"
+          class="primary-button"
+        >
+          Start Trial
+        </button>
+
+        <p
+          id="register-message"
+          class="form-message"
+        ></p>
+      </form>
+
+      <p class="auth-footer">
+        Already have an account?
+        <a href="/login.html">
+          Log in
+        </a>
+      </p>
+    </section>
+  </main>
+
+  <script src="/register.js"></script>
+</body>
+</html>

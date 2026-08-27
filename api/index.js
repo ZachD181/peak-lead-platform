@@ -329,6 +329,170 @@ async function handleAdminCreateClient(req, res) {
     },
   });
 }
+async function handleRegister(req, res) {
+  const input = await readBody(req);
+
+  const companyName =
+    cleanText(input.companyName, 150);
+
+  const ownerName =
+    cleanText(input.ownerName, 150);
+
+  const ownerEmail =
+    cleanText(input.ownerEmail, 254)
+      .toLowerCase();
+
+  const ownerPassword =
+    String(input.ownerPassword || "");
+
+  const industry =
+    cleanText(input.industry, 100);
+
+  if (
+    !companyName ||
+    !ownerName ||
+    !ownerEmail ||
+    !ownerPassword
+  ) {
+    return sendJson(res, 400, {
+      error:
+        "Company name, owner name, email, and password are required.",
+    });
+  }
+
+  if (!validEmail(ownerEmail)) {
+    return sendJson(res, 400, {
+      error:
+        "A valid email address is required.",
+    });
+  }
+
+  if (ownerPassword.length < 10) {
+    return sendJson(res, 400, {
+      error:
+        "Password must be at least 10 characters.",
+    });
+  }
+
+  const existingUser =
+    await getUserByEmail(ownerEmail);
+
+  if (existingUser) {
+    return sendJson(res, 409, {
+      error:
+        "An account with that email already exists.",
+    });
+  }
+
+  const slug =
+    companyName
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+
+  if (!slug) {
+    return sendJson(res, 400, {
+      error:
+        "Please enter a valid business name.",
+    });
+  }
+
+  const existingClient =
+    await getClientBySlug(slug);
+
+  if (existingClient) {
+    return sendJson(res, 409, {
+      error:
+        "An account with that business name already exists.",
+    });
+  }
+
+  const now =
+    new Date().toISOString();
+
+  const client =
+    await createClient({
+      id: crypto.randomUUID(),
+
+      name: companyName,
+      slug,
+      industry,
+
+      status: "active",
+      plan: "standard",
+      subscriptionStatus: "trial",
+
+      createdAt: now,
+      updatedAt: now,
+    });
+
+  const passwordData =
+    await hashPassword(ownerPassword);
+
+  const owner =
+    await createUser({
+      id: crypto.randomUUID(),
+
+      clientId: client.id,
+
+      name: ownerName,
+      email: ownerEmail,
+
+      role: "owner",
+      status: "active",
+
+      passwordSalt:
+        passwordData.salt,
+
+      passwordHash:
+        passwordData.hash,
+
+      createdAt: now,
+      updatedAt: now,
+    });
+
+  await updateScoringRulesByClient(
+    client.id,
+    {
+      immediately: 30,
+      within30Days: 25,
+      oneToThreeMonths: 18,
+      threeToSixMonths: 10,
+      researching: 4,
+
+      readyToBuy: 25,
+      activelyComparing: 20,
+      gettingEstimates: 14,
+      earlyResearch: 6,
+
+      phone: 8,
+      notes: 4,
+
+      highPriorityThreshold: 75,
+      qualifiedThreshold: 55,
+    }
+  );
+
+  return sendJson(res, 201, {
+    success: true,
+
+    message:
+      "Your Peak account has been created.",
+
+    client: {
+      id: client.id,
+      name: client.name,
+      slug: client.slug,
+    },
+
+    owner: {
+      id: owner.id,
+      name: owner.name,
+      email: owner.email,
+      role: owner.role,
+    },
+  });
+}
 
 async function handleAdminUpdateScoringRules(
   req,
@@ -1233,6 +1397,12 @@ if (
   url.pathname === "/api/logout"
 ) {
   return handleLogout(req, res);
+}
+if (
+  req.method === "POST" &&
+  url.pathname === "/api/register"
+) {
+  return handleRegister(req, res);
 }
 if (
   req.method === "POST" &&
