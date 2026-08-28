@@ -1411,7 +1411,7 @@ if (
   req.method === "GET" &&
   url.pathname === "/api/pipeline"
 ) {
-  const session = await requireSession(req, res);
+  const session = await requireActiveSubscription(req, res);
 
   if (!session) return;
 
@@ -1426,7 +1426,7 @@ if (
   req.method === "PATCH" &&
   match
 ) {
-  const session = await requireSession(req, res);
+  await requireActiveSubscription(req, res);
 
   if (!session) return;
 
