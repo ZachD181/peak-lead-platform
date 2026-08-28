@@ -251,6 +251,10 @@ async function handleAdminCreateClient(req, res) {
 
   const now = new Date().toISOString();
 
+  const trialEndsAt = new Date(
+  Date.now() + 14 * 24 * 60 * 60 * 1000
+).toISOString();
+
   const client = await createClient({
     id: crypto.randomUUID(),
 
@@ -261,6 +265,7 @@ async function handleAdminCreateClient(req, res) {
     status: "active",
     plan: "standard",
     subscriptionStatus: "trial",
+    trialEndsAt: trialEndsAt,
 
     createdAt: now,
     updatedAt: now,
@@ -410,6 +415,10 @@ async function handleRegister(req, res) {
   const now =
     new Date().toISOString();
 
+    const trialEndsAt = new Date(
+  Date.now() + 14 * 24 * 60 * 60 * 1000
+).toISOString();
+
   const client =
     await createClient({
       id: crypto.randomUUID(),
@@ -418,9 +427,10 @@ async function handleRegister(req, res) {
       slug,
       industry,
 
-      status: "active",
-      plan: "standard",
-      subscriptionStatus: "trial",
+     status: "active",
+    plan: "standard",
+    subscriptionStatus: "trial",
+    trialEndsAt: trialEndsAt,
 
       createdAt: now,
       updatedAt: now,
@@ -881,6 +891,62 @@ async function requireSession(req, res) {
 
   return session;
 }
+async function requireActiveSubscription(req, res) {
+  const session = await requireSession(req, res);
+
+  if (!session) {
+    return null;
+  }
+
+  // Peak admins do not belong to a client account.
+  if (!session.clientId) {
+    return session;
+  }
+
+  const client = await getClientById(
+    session.clientId
+  );
+
+  if (!client) {
+    sendJson(res, 404, {
+      error: "Client account not found.",
+    });
+
+    return null;
+  }
+
+  const subscriptionStatus =
+    client.subscription_status ||
+    client.subscriptionStatus ||
+    "";
+
+  const trialEndsAt =
+    client.trial_ends_at ||
+    client.trialEndsAt ||
+    null;
+
+  // Paid customer
+  if (subscriptionStatus === "active") {
+    return session;
+  }
+
+  // Valid trial
+  if (
+    subscriptionStatus === "trial" &&
+    trialEndsAt &&
+    new Date(trialEndsAt).getTime() >
+      Date.now()
+  ) {
+    return session;
+  }
+
+  sendJson(res, 402, {
+    error: "Subscription required.",
+    code: "SUBSCRIPTION_REQUIRED",
+  });
+
+  return null;
+}
 async function handleLogout(req, res) {
   const sessionId = getCookie(
     req,
@@ -1329,7 +1395,7 @@ async function handleAdminUpdateClientStatus(
   url.pathname === "/api/leads"
 ) {
   const session =
-    await requireSession(req, res);
+   await requireActiveSubscription(req, res);
 
   if (!session) return;
 

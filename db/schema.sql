@@ -107,6 +107,9 @@ alter table clients
   add column if not exists subscription_status text not null default 'trial';
 
 alter table clients
+  add column if not exists trial_ends_at timestamptz;
+
+alter table clients
   add column if not exists billing_customer_id text;
 
 alter table clients
