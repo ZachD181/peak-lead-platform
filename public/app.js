@@ -184,15 +184,21 @@ async function loadDashboard() {
     const response =
       await fetch(endpoint);
 
-    const data =
-      await response.json();
+    const data = await response.json();
 
-    if (!response.ok) {
-      throw new Error(
-        data.error ||
-        "Unable to load dashboard."
-      );
-    }
+if (
+  response.status === 402 &&
+  data.code === "SUBSCRIPTION_REQUIRED"
+) {
+  window.location.href = "/billing.html";
+  return;
+}
+
+if (!response.ok) {
+  throw new Error(
+    data.error || "Unable to load dashboard."
+  );
+}
 
     if (!isCustomerUser) {
       const visitorLeads =
