@@ -92,3 +92,58 @@ manageSubscriptionButton?.addEventListener(
     }
   }
 );
+async function loadBillingStatus() {
+  try {
+    const response = await fetch(
+      "/api/billing-status"
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.error ||
+        "Unable to load billing status."
+      );
+    }
+
+    const status =
+      data.subscriptionStatus;
+
+    const hasStripeCustomer =
+      Boolean(data.billingCustomerId);
+
+    if (upgradeButton) {
+      upgradeButton.style.display =
+        status === "active"
+          ? "none"
+          : "inline-block";
+    }
+
+    if (manageSubscriptionButton) {
+      manageSubscriptionButton.style.display =
+        hasStripeCustomer
+          ? "inline-block"
+          : "none";
+    }
+
+    if (billingMessage) {
+      if (status === "active") {
+        billingMessage.textContent =
+          "Your Peak subscription is active.";
+      } else if (status === "canceled") {
+        billingMessage.textContent =
+          "Your subscription is canceled. Upgrade to restore access.";
+      } else if (status === "trial") {
+        billingMessage.textContent =
+          "Your Peak account is currently on trial.";
+      }
+    }
+  } catch (error) {
+    if (billingMessage) {
+      billingMessage.textContent =
+        error.message;
+    }
+  }
+}
+loadBillingStatus();

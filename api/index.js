@@ -1648,6 +1648,49 @@ if (
   });
 }
 
+async function handleBillingStatus(
+  req,
+  res
+) {
+  const session =
+    await requireSession(req, res);
+
+  if (!session) return;
+
+  if (!session.clientId) {
+    return sendJson(res, 200, {
+      subscriptionStatus: "admin",
+      billingCustomerId: null,
+    });
+  }
+
+  const client =
+    await getClientById(session.clientId);
+
+  if (!client) {
+    return sendJson(res, 404, {
+      error: "Client account not found.",
+    });
+  }
+
+  return sendJson(res, 200, {
+    subscriptionStatus:
+      client.subscription_status ||
+      client.subscriptionStatus ||
+      "trial",
+
+    billingCustomerId:
+      client.billing_customer_id ||
+      client.billingCustomerId ||
+      null,
+
+    trialEndsAt:
+      client.trial_ends_at ||
+      client.trialEndsAt ||
+      null,
+  });
+}
+
 async function handleAdminUpdateClientStatus(
   req,
   res,
@@ -1731,6 +1774,13 @@ if (
 
 if (
   req.method === "GET" &&
+  url.pathname === "/api/billing-status"
+) {
+  return handleBillingStatus(req, res);
+}
+
+if (
+  req.method === "GET" &&
   url.pathname === "/api/pipeline"
 ) {
   const session = await requireActiveSubscription(req, res);
@@ -1759,6 +1809,14 @@ if (
     session
   );
 }   
+
+if (
+  req.method === "GET" &&
+  url.pathname === "/api/billing-status"
+) {
+  return handleBillingStatus(req, res);
+}
+
 if (
   req.method === "GET" &&
   url.pathname === "/api/settings"
