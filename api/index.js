@@ -1,6 +1,9 @@
 const crypto = require("crypto");
 
 const {
+  createPasswordResetToken,
+getValidPasswordResetToken,
+markPasswordResetTokenUsed,
   createClient,
 createUser,
 updateScoringRulesByClient,
@@ -25,6 +28,7 @@ getUsersByClient,
 getScoringRulesByClient,
 updateClientStatus,
 updateClientBilling,
+updateUserPassword,
 
 } = require("../lib/repository");
 
@@ -276,6 +280,68 @@ async function handleCreateCheckoutSession(
     url: checkoutSession.url,
   });
 }
+
+async function handleForgotPassword(req, res) {
+  const input = await readBody(req);
+
+  const email =
+    cleanText(input.email, 254).toLowerCase();
+
+  if (!validEmail(email)) {
+    return sendJson(res, 200, {
+      success: true,
+    });
+  }
+
+  const user =
+    await getUserByEmail(email);
+
+  if (!user) {
+    return sendJson(res, 200, {
+      success: true,
+    });
+  }
+
+  const resetToken =
+    crypto.randomBytes(32).toString("hex");
+
+  const tokenHash =
+    crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
+
+  const expiresAt =
+    new Date(
+      Date.now() + 30 * 60 * 1000
+    ).toISOString();
+
+  await createPasswordResetToken({
+    userId: user.id,
+    tokenHash,
+    expiresAt,
+  });
+
+  const origin =
+    `${req.headers["x-forwarded-proto"] || "http"}://${req.headers.host}`;
+
+  const resetUrl =
+    `${origin}/reset-password.html?token=${resetToken}`;
+
+  console.log(
+    "Password reset URL:",
+    resetUrl
+  );
+
+  return sendJson(res, 200, {
+    success: true,
+
+    // TEMPORARY:
+    // Remove this once email delivery is added.
+    resetUrl,
+  });
+}
+
 async function handleStripeWebhook(req, res) {
   const signature =
     req.headers["stripe-signature"];
@@ -1691,6 +1757,58 @@ async function handleBillingStatus(
   });
 }
 
+async function handleResetPassword(req, res) {
+  const input = await readBody(req);
+
+  const token =
+    String(input.token || "").trim();
+
+  const password =
+    String(input.password || "");
+
+  if (!token || password.length < 8) {
+    return sendJson(res, 400, {
+      error:
+        "A valid reset token and password are required.",
+    });
+  }
+
+  const tokenHash =
+    crypto
+      .createHash("sha256")
+      .update(token)
+      .digest("hex");
+
+  const resetRecord =
+    await getValidPasswordResetToken(
+      tokenHash
+    );
+
+  if (!resetRecord) {
+    return sendJson(res, 400, {
+      error:
+        "This password reset link is invalid or has expired.",
+    });
+  }
+
+  const passwordData =
+    await hashPassword(password);
+
+  await updateUserPassword(
+    resetRecord.user_id,
+    passwordData.salt,
+    passwordData.hash
+  );
+
+  await markPasswordResetTokenUsed(
+    resetRecord.id
+  );
+
+  return sendJson(res, 200, {
+    success: true,
+  });
+}
+
 async function handleAdminUpdateClientStatus(
   req,
   res,
@@ -1893,6 +2011,14 @@ if (
 
 if (
   req.method === "POST" &&
+  url.pathname === "/api/forgot-password"
+) {
+  return handleForgotPassword(req, res);
+}
+
+
+if (
+  req.method === "POST" &&
   url.pathname === "/api/admin/clients"
 ) {
   const admin = await requirePeakAdmin(
@@ -1951,9 +2077,13 @@ if (
     adminClientMatch[1]
   );
   
+}
 
- 
-
+if (
+  req.method === "POST" &&
+  url.pathname === "/api/reset-password"
+) {
+  return handleResetPassword(req, res);
 }
 
    const adminScoringMatch =
