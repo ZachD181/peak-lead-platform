@@ -848,6 +848,55 @@ async function handlePipeline(req, res, session) {
   });
 }
 
+async function handleCreateBillingPortal(
+  req,
+  res
+) {
+  const session =
+    await requireSession(req, res);
+
+  if (!session) return;
+
+  if (!session.clientId) {
+    return sendJson(res, 400, {
+      error:
+        "Peak administrators do not have customer billing.",
+    });
+  }
+
+  const client =
+    await getClientById(session.clientId);
+
+  if (!client) {
+    return sendJson(res, 404, {
+      error: "Client account not found.",
+    });
+  }
+
+  const billingCustomerId =
+    client.billing_customer_id ||
+    client.billingCustomerId;
+
+  if (!billingCustomerId) {
+    return sendJson(res, 400, {
+      error:
+        "No Stripe customer is connected to this account yet.",
+    });
+  }
+
+  const origin =
+    `${req.headers["x-forwarded-proto"] || "http"}://${req.headers.host}`;
+
+  const portalSession =
+    await stripe.billingPortal.sessions.create({
+      customer: billingCustomerId,
+      return_url: `${origin}/`,
+    });
+
+  return sendJson(res, 200, {
+    url: portalSession.url,
+  });
+}
 
 async function handleUpdateLead(
   req,
@@ -1671,6 +1720,13 @@ return handleCreateLead(
   res,
   session
 );
+}
+
+if (
+  req.method === "POST" &&
+  url.pathname === "/api/create-billing-portal"
+) {
+  return handleCreateBillingPortal(req, res);
 }
 
 if (
