@@ -24,6 +24,7 @@ updateClientScoringRulesById,
 getUsersByClient,
 getScoringRulesByClient,
 updateClientStatus,
+updateClientBilling,
 
 } = require("../lib/repository");
 
@@ -34,6 +35,12 @@ const {
 } = require("../lib/auth");
 
 const { calculateLeadScore } = require("../lib/scoring");
+
+const Stripe = require("stripe");
+
+const stripe = new Stripe(
+  process.env.STRIPE_SECRET_KEY
+);
 
 function sendJson(res, status, payload) {
   res.writeHead(status, {
@@ -62,6 +69,22 @@ function readBody(req) {
       } catch {
         reject(new Error("Invalid JSON."));
       }
+    });
+
+    req.on("error", reject);
+  });
+}
+
+function readRawBody(req) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+
+    req.on("data", (chunk) => {
+      chunks.push(chunk);
+    });
+
+    req.on("end", () => {
+      resolve(Buffer.concat(chunks));
     });
 
     req.on("error", reject);
@@ -179,6 +202,242 @@ const scoringRules =
     },
   });
 }
+
+async function handleCreateCheckoutSession(
+  req,
+  res
+) {
+  const session =
+    await requireSession(req, res);
+
+  if (!session) return;
+
+  if (!session.clientId) {
+    return sendJson(res, 400, {
+      error:
+        "Peak administrators do not require subscriptions.",
+    });
+  }
+
+  const client =
+    await getClientById(session.clientId);
+
+  if (!client) {
+    return sendJson(res, 404, {
+      error: "Client account not found.",
+    });
+  }
+
+  const user =
+    await getUserById(session.userId);
+
+  if (!user) {
+    return sendJson(res, 404, {
+      error: "User account not found.",
+    });
+  }
+
+  const origin =
+    `${req.headers["x-forwarded-proto"] || "http"}://${req.headers.host}`;
+
+  const checkoutSession =
+    await stripe.checkout.sessions.create({
+      mode: "subscription",
+
+      customer_email: user.email,
+
+      line_items: [
+        {
+          price:
+            process.env.STRIPE_PRICE_ID,
+          quantity: 1,
+        },
+      ],
+
+      success_url:
+        `${origin}/billing.html?success=true`,
+
+      cancel_url:
+        `${origin}/billing.html?canceled=true`,
+
+      metadata: {
+        clientId: client.id,
+        userId: user.id,
+      },
+
+      subscription_data: {
+        metadata: {
+          clientId: client.id,
+        },
+      },
+    });
+
+  return sendJson(res, 200, {
+    url: checkoutSession.url,
+  });
+}
+async function handleStripeWebhook(req, res) {
+  const signature =
+    req.headers["stripe-signature"];
+
+  if (!signature) {
+    return sendJson(res, 400, {
+      error: "Missing Stripe signature.",
+    });
+  }
+
+  const webhookSecret =
+    process.env.STRIPE_WEBHOOK_SECRET;
+
+  if (!webhookSecret) {
+    return sendJson(res, 500, {
+      error: "Stripe webhook is not configured.",
+    });
+  }
+
+  let event;
+
+  try {
+    const rawBody =
+      await readRawBody(req);
+
+    event =
+      stripe.webhooks.constructEvent(
+        rawBody,
+        signature,
+        webhookSecret
+      );
+  } catch (error) {
+    console.error(
+      "Stripe webhook verification failed:",
+      error.message
+    );
+
+    return sendJson(res, 400, {
+      error: "Invalid Stripe webhook.",
+    });
+  }
+
+  try {
+    if (
+      event.type ===
+      "checkout.session.completed"
+    ) {
+      const checkoutSession =
+        event.data.object;
+
+      const clientId =
+        checkoutSession.metadata?.clientId;
+
+      if (clientId) {
+        await updateClientBilling(
+          clientId,
+          {
+            subscriptionStatus:
+              "active",
+
+            billingCustomerId:
+              typeof checkoutSession.customer ===
+              "string"
+                ? checkoutSession.customer
+                : checkoutSession.customer?.id,
+
+            billingSubscriptionId:
+              typeof checkoutSession.subscription ===
+              "string"
+                ? checkoutSession.subscription
+                : checkoutSession.subscription?.id,
+          }
+        );
+
+        console.log(
+          `Activated subscription for client ${clientId}`
+        );
+      }
+    }
+
+    if (
+      event.type ===
+      "customer.subscription.updated"
+    ) {
+      const subscription =
+        event.data.object;
+
+      const clientId =
+        subscription.metadata?.clientId;
+
+      if (clientId) {
+        const allowedStatus =
+          subscription.status === "active" ||
+          subscription.status === "trialing"
+            ? "active"
+            : subscription.status;
+
+        await updateClientBilling(
+          clientId,
+          {
+            subscriptionStatus:
+              allowedStatus,
+
+            billingCustomerId:
+              typeof subscription.customer ===
+              "string"
+                ? subscription.customer
+                : subscription.customer?.id,
+
+            billingSubscriptionId:
+              subscription.id,
+          }
+        );
+      }
+    }
+
+    if (
+      event.type ===
+      "customer.subscription.deleted"
+    ) {
+      const subscription =
+        event.data.object;
+
+      const clientId =
+        subscription.metadata?.clientId;
+
+      if (clientId) {
+        await updateClientBilling(
+          clientId,
+          {
+            subscriptionStatus:
+              "canceled",
+
+            billingCustomerId:
+              typeof subscription.customer ===
+              "string"
+                ? subscription.customer
+                : subscription.customer?.id,
+
+            billingSubscriptionId:
+              subscription.id,
+          }
+        );
+      }
+    }
+
+    return sendJson(res, 200, {
+      received: true,
+    });
+  } catch (error) {
+    console.error(
+      "Stripe webhook processing failed:",
+      error
+    );
+
+    return sendJson(res, 500, {
+      error:
+        "Unable to process Stripe webhook.",
+    });
+  }
+}
+
 async function handleAdminCreateClient(req, res) {
   const input = await readBody(req);
 
@@ -1300,7 +1559,14 @@ module.exports = async function handler(req, res) {
         "trial",
     },
   });
-}   
+} 
+
+if (
+  req.method === "POST" &&
+  url.pathname === "/api/create-checkout-session"
+) {
+  return handleCreateCheckoutSession(req, res);
+}
 
  async function handleCurrentUser(
   req,
@@ -1458,6 +1724,14 @@ if (
 
   return handleUpdateSettings(req, res, session);
 }
+
+if (
+  req.method === "POST" &&
+  url.pathname === "/api/stripe/webhook"
+) {
+  return handleStripeWebhook(req, res);
+}
+
 if (
   req.method === "POST" &&
   url.pathname === "/api/logout"
