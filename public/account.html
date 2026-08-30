@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+  <title>Account | Peak Lead Platform</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+
+<body>
+  <main class="auth-page">
+    <section class="auth-card">
+      <h1>Account</h1>
+
+      <p class="auth-subtitle">
+        Manage your Peak account, billing,
+        and security settings.
+      </p>
+
+      <div class="account-section">
+        <h2>Company</h2>
+
+        <p>
+          <strong id="account-company">
+            Loading...
+          </strong>
+        </p>
+
+        <p id="account-email"></p>
+      </div>
+
+      <div class="account-section">
+        <h2>Subscription</h2>
+
+        <p id="account-subscription">
+          Loading subscription status...
+        </p>
+
+        <a
+          href="/billing.html"
+          class="primary-button"
+        >
+          Manage Billing
+        </a>
+      </div>
+
+      <div class="account-section">
+        <h2>Security</h2>
+
+        <p>
+          Need to change your password?
+        </p>
+
+        <a
+          href="/forgot-password.html"
+          class="secondary-button"
+        >
+          Reset Password
+        </a>
+      </div>
+
+      <div class="account-section">
+        <button
+          id="account-logout-button"
+          class="secondary-button"
+          type="button"
+        >
+          Log Out
+        </button>
+      </div>
+
+      <p class="auth-footer">
+        <a href="/">
+          Back to Dashboard
+        </a>
+      </p>
+    </section>
+  </main>
+
+  <script src="/account.js"></script>
+</body>
+</html>

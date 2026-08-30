@@ -1740,17 +1740,31 @@ if (
     });
   }
 
-  return sendJson(res, 200, {
-    user: {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      status: user.status,
-      clientId:
-        user.clientId || null,
-    },
-  });
+  const client =
+  user.clientId
+    ? await getClientById(user.clientId)
+    : null;
+
+ return sendJson(res, 200, {
+  user: {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    status: user.status,
+    clientId:
+      user.clientId || null,
+  },
+
+  client: client
+    ? {
+        id: client.id,
+        name: client.name,
+        slug: client.slug,
+        industry: client.industry,
+      }
+    : null,
+});
 }
 
 async function handleBillingStatus(
