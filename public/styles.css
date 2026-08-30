@@ -1199,3 +1199,164 @@ footer .brand {
   color: #dfff00;
   border-color: #dfff00;
 }
+/* =========================================
+   PEAK AUTH + BILLING PAGES
+   ========================================= */
+
+.auth-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 40px 20px;
+}
+
+.auth-card {
+  width: min(500px, 100%);
+  padding: 38px;
+
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(214, 255, 75, 0.08),
+      transparent 35%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.045),
+      rgba(255, 255, 255, 0.02)
+    );
+
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.auth-card::before {
+  content: "▲  PEAK LEAD PLATFORM";
+  display: block;
+
+  margin-bottom: 24px;
+
+  color: var(--accent);
+  font-size: 0.8rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+}
+
+.auth-card h1 {
+  font-size: clamp(2rem, 6vw, 2.7rem);
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+}
+
+.auth-subtitle {
+  margin-top: 12px;
+  color: var(--muted);
+}
+
+.auth-card form {
+  margin-top: 28px;
+}
+
+.auth-card label {
+  display: block;
+  margin-bottom: 18px;
+
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.auth-card input,
+.auth-card select {
+  width: 100%;
+  margin-top: 7px;
+  padding: 14px 15px;
+
+  background: #0d1116;
+  color: var(--text);
+
+  border: 1px solid var(--line);
+  border-radius: 10px;
+
+  font: inherit;
+  outline: none;
+
+  transition: 0.2s ease;
+}
+
+.auth-card input:focus,
+.auth-card select:focus {
+  border-color: var(--accent);
+
+  box-shadow:
+    0 0 0 3px rgba(214, 255, 75, 0.08);
+}
+
+.auth-card .primary-button,
+.auth-card .secondary-button {
+  width: 100%;
+  margin-top: 10px;
+  border: 0;
+  cursor: pointer;
+}
+
+.auth-card .primary-button:disabled,
+.auth-card .secondary-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.auth-footer {
+  margin-top: 18px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.auth-footer a {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.auth-footer a:hover {
+  text-decoration: underline;
+}
+
+.form-message,
+#register-message,
+#forgot-password-message,
+#reset-password-message,
+#billing-message {
+  min-height: 24px;
+  margin-top: 16px;
+  text-align: center;
+  color: var(--muted);
+}
+
+#test-reset-link {
+  margin-top: 18px;
+  padding: 16px;
+
+  text-align: center;
+
+  background: var(--accent-soft);
+  border: 1px solid rgba(214, 255, 75, 0.2);
+  border-radius: 10px;
+}
+
+#test-reset-link a {
+  color: var(--accent);
+  font-weight: 800;
+}
+
+@media (max-width: 560px) {
+  .auth-card {
+    padding: 28px 22px;
+  }
+}
+.auth-card .login-copy {
+  margin-top: 12px;
+  color: var(--muted);
+}
