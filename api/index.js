@@ -46,6 +46,12 @@ const stripe = new Stripe(
   process.env.STRIPE_SECRET_KEY
 );
 
+const { Resend } = require("resend");
+
+const resend = new Resend(
+  process.env.RESEND_API_KEY
+);
+
 function sendJson(res, status, payload) {
   res.writeHead(status, {
     "Content-Type": "application/json; charset=utf-8",
@@ -322,24 +328,57 @@ async function handleForgotPassword(req, res) {
     expiresAt,
   });
 
-  const origin =
-    `${req.headers["x-forwarded-proto"] || "http"}://${req.headers.host}`;
+  const { data, error } =
+  await resend.emails.send({
+    from:
+      "Peak Lead Platform <onboarding@resend.dev>",
+    to: user.email,
+    subject: "Reset your Peak password",
+    html: `
+      <h2>Reset your Peak password</h2>
 
-  const resetUrl =
-    `${origin}/reset-password.html?token=${resetToken}`;
+      <p>
+        We received a request to reset your
+        Peak Lead Platform password.
+      </p>
 
-  console.log(
-    "Password reset URL:",
-    resetUrl
+      <p>
+        <a href="${resetUrl}">
+          Reset Password
+        </a>
+      </p>
+
+      <p>
+        This link expires in 30 minutes
+        and can only be used once.
+      </p>
+
+      <p>
+        If you didn't request this,
+        you can ignore this email.
+      </p>
+    `,
+  });
+
+if (error) {
+  console.error(
+    "Resend password reset error:",
+    error
   );
 
-  return sendJson(res, 200, {
-    success: true,
-
-    // TEMPORARY:
-    // Remove this once email delivery is added.
-    resetUrl,
+  return sendJson(res, 500, {
+    error: "Unable to send reset email.",
   });
+}
+
+console.log(
+  "Password reset email sent:",
+  data
+);
+
+return sendJson(res, 200, {
+  success: true,
+});
 }
 
 async function handleStripeWebhook(req, res) {
