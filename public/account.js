@@ -253,18 +253,63 @@ async function loadAccount() {
       data.subscriptionStatus;
 
     if (status === "active") {
-      subscriptionElement.textContent =
-        "Your Peak subscription is active.";
-    } else if (status === "trial") {
-      subscriptionElement.textContent =
-        "Your Peak account is on a trial.";
-    } else if (status === "canceled") {
-      subscriptionElement.textContent =
-        "Your Peak subscription is canceled.";
-    } else {
-      subscriptionElement.textContent =
-        `Subscription status: ${status}`;
-    }
+  subscriptionElement.textContent =
+    "Your Peak subscription is active.";
+
+} else if (
+  status === "trial" &&
+  data.trialEndsAt
+) {
+  const trialEnd =
+    new Date(data.trialEndsAt);
+
+  const now =
+    new Date();
+
+  const millisecondsRemaining =
+    trialEnd.getTime() - now.getTime();
+
+  const daysRemaining =
+    Math.max(
+      0,
+      Math.ceil(
+        millisecondsRemaining /
+        (1000 * 60 * 60 * 24)
+      )
+    );
+
+  const formattedDate =
+    trialEnd.toLocaleDateString(
+      undefined,
+      {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+      }
+    );
+
+  subscriptionElement.innerHTML = `
+    <strong>Peak Trial</strong><br>
+    Trial ends ${formattedDate}<br>
+    ${daysRemaining} ${
+      daysRemaining === 1
+        ? "day"
+        : "days"
+    } remaining
+  `;
+
+} else if (status === "trial") {
+  subscriptionElement.textContent =
+    "Your Peak account is on a trial.";
+
+} else if (status === "canceled") {
+  subscriptionElement.textContent =
+    "Your Peak subscription is canceled.";
+
+} else {
+  subscriptionElement.textContent =
+    `Subscription status: ${status}`;
+}
 
   } catch (error) {
     console.error(
