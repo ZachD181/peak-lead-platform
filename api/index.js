@@ -29,8 +29,12 @@ getScoringRulesByClient,
 updateClientStatus,
 updateClientBilling,
 updateUserPassword,
+updateClientCompany,
 
 } = require("../lib/repository");
+
+const repository =
+  require("../lib/repository");
 
 const {
   verifyPassword,
@@ -1721,6 +1725,63 @@ if (
 ) {
   return handleCreateCheckoutSession(req, res);
 }
+async function handleUpdateCompany(
+  req,
+  res
+) {
+  const session =
+    await requireSession(req, res);
+
+  if (!session) return;
+
+  if (!session.clientId) {
+    return sendJson(res, 403, {
+      error:
+        "Peak administrators do not have customer company settings.",
+    });
+  }
+
+  const input =
+    await readBody(req);
+
+  const name =
+    cleanText(input.name, 150);
+
+  const industry =
+    cleanText(input.industry, 100);
+
+  if (!name) {
+    return sendJson(res, 400, {
+      error: "Company name is required.",
+    });
+  }
+
+ const client =
+  await repository.updateClientCompany(
+    session.clientId,
+    {
+      name,
+      industry,
+    }
+  );
+
+  if (!client) {
+    return sendJson(res, 404, {
+      error: "Client account not found.",
+    });
+  }
+
+  return sendJson(res, 200, {
+    success: true,
+
+    client: {
+      id: client.id,
+      name: client.name,
+      industry:
+        client.industry || "",
+    },
+  });
+}
 
  async function handleCurrentUser(
   req,
@@ -1934,6 +1995,16 @@ return handleCreateLead(
   res,
   session
 );
+}
+
+if (
+  req.method === "PATCH" &&
+  url.pathname === "/api/account/company"
+) {
+  return handleUpdateCompany(
+    req,
+    res
+  );
 }
 
 if (

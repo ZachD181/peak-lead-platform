@@ -32,6 +32,7 @@
         <p id="account-email"></p>
       </div>
 
+
       <div class="account-section">
         <h2>Subscription</h2>
 
@@ -61,6 +62,38 @@
           Reset Password
         </a>
       </div>
+
+      <div class="account-section">
+  <h2>Company Settings</h2>
+
+  <form id="company-settings-form">
+    <label>
+      Company Name
+      <input
+        id="company-name"
+        type="text"
+        required
+      />
+    </label>
+
+    <label>
+      Industry
+      <input
+        id="company-industry"
+        type="text"
+      />
+    </label>
+
+    <button
+      type="submit"
+      class="primary-button"
+    >
+      Save Company Settings
+    </button>
+
+    <p id="company-settings-message"></p>
+  </form>
+</div>
 
       <div class="account-section">
         <button
