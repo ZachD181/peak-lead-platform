@@ -30,6 +30,7 @@ updateClientStatus,
 updateClientBilling,
 updateUserPassword,
 updateClientCompany,
+updateUserProfile,
 
 } = require("../lib/repository");
 
@@ -111,6 +112,78 @@ function cleanText(value, maxLength = 500) {
 
 function validEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+async function handleUpdateProfile(
+  req,
+  res
+) {
+  const session =
+    await requireSession(req, res);
+
+  if (!session) return;
+
+  const input =
+    await readBody(req);
+
+  const name =
+    cleanText(input.name, 150);
+
+  const email =
+    cleanText(input.email, 254)
+      .toLowerCase();
+
+  if (!name) {
+    return sendJson(res, 400, {
+      error: "Name is required.",
+    });
+  }
+
+  if (!validEmail(email)) {
+    return sendJson(res, 400, {
+      error:
+        "A valid email address is required.",
+    });
+  }
+
+  const existingUser =
+    await getUserByEmail(email);
+
+  if (
+    existingUser &&
+    existingUser.id !== session.userId
+  ) {
+    return sendJson(res, 409, {
+      error:
+        "A user with that email already exists.",
+    });
+  }
+
+  const user =
+    await updateUserProfile(
+      session.userId,
+      {
+        name,
+        email,
+      }
+    );
+
+  if (!user) {
+    return sendJson(res, 404, {
+      error: "User account not found.",
+    });
+  }
+
+  return sendJson(res, 200, {
+    success: true,
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      status: user.status,
+    },
+  });
 }
 
 async function handleCreateLead(
@@ -2201,6 +2274,15 @@ if (
     adminClientMatch[1]
   );
   
+}
+if (
+  req.method === "PATCH" &&
+  url.pathname === "/api/account/profile"
+) {
+  return handleUpdateProfile(
+    req,
+    res
+  );
 }
 
 if (

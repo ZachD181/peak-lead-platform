@@ -38,6 +38,26 @@ const companySettingsMessage =
     "company-settings-message"
   );
 
+  const profileForm =
+  document.getElementById(
+    "profile-form"
+  );
+
+const profileNameInput =
+  document.getElementById(
+    "profile-name"
+  );
+
+const profileEmailInput =
+  document.getElementById(
+    "profile-email"
+  );
+
+const profileMessage =
+  document.getElementById(
+    "profile-message"
+  );
+
   companySettingsForm?.addEventListener(
   "submit",
   async (event) => {
@@ -86,6 +106,81 @@ const companySettingsMessage =
   }
 );
 
+profileForm?.addEventListener(
+  "submit",
+  async (event) => {
+    event.preventDefault();
+
+    profileMessage.textContent =
+      "Saving profile...";
+
+    try {
+      const response = await fetch(
+        "/api/account/profile",
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify({
+            name:
+              profileNameInput.value.trim(),
+
+            email:
+              profileEmailInput.value.trim(),
+          }),
+        }
+      );
+
+      const data =
+        await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error ||
+          "Unable to save profile."
+        );
+      }
+
+      emailElement.textContent =
+        data.user.email;
+
+      profileNameInput.value =
+        data.user.name;
+
+      profileEmailInput.value =
+        data.user.email;
+
+      profileMessage.textContent =
+        "Profile saved.";
+
+      const storedUser =
+        JSON.parse(
+          sessionStorage.getItem(
+            "peak-user"
+          ) || "null"
+        );
+
+      if (storedUser) {
+        storedUser.name =
+          data.user.name;
+
+        storedUser.email =
+          data.user.email;
+
+        sessionStorage.setItem(
+          "peak-user",
+          JSON.stringify(storedUser)
+        );
+      }
+    } catch (error) {
+      profileMessage.textContent =
+        error.message;
+    }
+  }
+);
+
 async function loadAccount() {
   try {
     const response =
@@ -95,45 +190,64 @@ async function loadAccount() {
       await response.json();
 
     if (!response.ok) {
-      window.location.href =
-        "/login.html";
+      if (
+        response.status === 401 ||
+        response.status === 403
+      ) {
+        window.location.href =
+          "/login.html";
 
-      return;
+        return;
+      }
+
+      throw new Error(
+        data.error ||
+        "Unable to load account."
+      );
     }
 
     companyElement.textContent =
       data.client?.name ||
       "Peak account";
 
-      companyNameInput.value =
-  data.client?.name || "";
-
-companyIndustryInput.value =
-  data.client?.industry || "";
-
     emailElement.textContent =
       data.user?.email || "";
-  } catch {
-    window.location.href =
-      "/login.html";
+
+    companyNameInput.value =
+      data.client?.name || "";
+
+    companyIndustryInput.value =
+      data.client?.industry || "";
+
+    profileNameInput.value =
+      data.user?.name || "";
+
+    profileEmailInput.value =
+      data.user?.email || "";
+
+  } catch (error) {
+    console.error(
+      "Account load error:",
+      error
+    );
+
+    companyElement.textContent =
+      "Unable to load account.";
   }
 
   try {
     const response =
-      await fetch(
-        "/api/billing-status"
-      );
+      await fetch("/api/billing-status");
 
     const data =
       await response.json();
 
     if (!response.ok) {
       throw new Error(
+        data.error ||
         "Unable to load subscription."
       );
     }
-
-   
 
     const status =
       data.subscriptionStatus;
@@ -151,9 +265,15 @@ companyIndustryInput.value =
       subscriptionElement.textContent =
         `Subscription status: ${status}`;
     }
+
   } catch (error) {
+    console.error(
+      "Billing status error:",
+      error
+    );
+
     subscriptionElement.textContent =
-      error.message;
+      "Unable to load subscription status.";
   }
 }
 
