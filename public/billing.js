@@ -116,14 +116,24 @@ async function loadBillingStatus() {
       "/api/billing-status"
     );
 
-    const data = await response.json();
+   const data = await response.json();
 
-    if (!response.ok) {
-      throw new Error(
-        data.error ||
-        "Unable to load billing status."
-      );
-    }
+if (
+  response.status === 401 ||
+  response.status === 403
+) {
+  window.location.href =
+    "/login.html";
+
+  return;
+}
+
+if (!response.ok) {
+  throw new Error(
+    data.error ||
+    "Unable to load billing status."
+  );
+}
 
     const status =
       data.subscriptionStatus;
