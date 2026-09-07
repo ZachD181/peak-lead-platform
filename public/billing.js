@@ -78,6 +78,16 @@ manageSubscriptionButton?.addEventListener(
 
       const data = await response.json();
 
+      if (
+  response.status === 401 ||
+  response.status === 403
+) {
+  window.location.href =
+    "/login.html";
+
+  return;
+}
+
       if (!response.ok) {
         throw new Error(
           data.error ||
