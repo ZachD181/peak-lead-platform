@@ -1891,8 +1891,43 @@ async function handleBillingStatus(
       error: "Client account not found.",
     });
   }
+const billingSubscriptionId =
+  client.billing_subscription_id ||
+  client.billingSubscriptionId ||
+  null;
 
+let currentPeriodEnd = null;
+
+if (
+  (client.subscription_status ||
+    client.subscriptionStatus) === "active" &&
+  billingSubscriptionId
+) {
+  try {
+    const subscription =
+      await stripe.subscriptions.retrieve(
+        billingSubscriptionId
+      );
+
+      const periodEnd =
+  subscription.current_period_end ||
+  subscription.items?.data?.[0]?.current_period_end ||
+  null;
+
+if (periodEnd) {
+  currentPeriodEnd =
+    new Date(periodEnd * 1000).toISOString();
+}
+
+  } catch (error) {
+    console.error(
+      "Unable to load Stripe subscription:",
+      error
+    );
+  }
+}
   return sendJson(res, 200, {
+    
     subscriptionStatus:
       client.subscription_status ||
       client.subscriptionStatus ||
@@ -1902,6 +1937,9 @@ async function handleBillingStatus(
       client.billing_customer_id ||
       client.billingCustomerId ||
       null,
+
+    billingSubscriptionId,
+    currentPeriodEnd,
 
     trialEndsAt:
       client.trial_ends_at ||

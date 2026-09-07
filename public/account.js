@@ -252,13 +252,34 @@ async function loadAccount() {
     const status =
       data.subscriptionStatus;
 
-    if (status === "active") {
-  subscriptionElement.innerHTML = `
-    <strong>Peak Subscription</strong><br>
-    Active<br>
-    Manage your billing details below.
-  `;
+   if (status === "active") {
+  let renewalText =
+    "Your subscription is active.";
 
+  if (data.currentPeriodEnd) {
+    const renewalDate =
+      new Date(data.currentPeriodEnd);
+
+    const formattedRenewalDate =
+      renewalDate.toLocaleDateString(
+        undefined,
+        {
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+        }
+      );
+
+    renewalText =
+      `Renews ${formattedRenewalDate}`;
+  }
+
+  subscriptionElement.innerHTML = `
+  <strong>Peak Subscription</strong><br>
+  Active<br>
+  ${renewalText}<br>
+  Manage your billing details below.
+`;
 
 } else if (
   status === "trial" &&
