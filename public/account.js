@@ -253,8 +253,12 @@ async function loadAccount() {
       data.subscriptionStatus;
 
     if (status === "active") {
-  subscriptionElement.textContent =
-    "Your Peak subscription is active.";
+  subscriptionElement.innerHTML = `
+    <strong>Peak Subscription</strong><br>
+    Active<br>
+    Manage your billing details below.
+  `;
+
 
 } else if (
   status === "trial" &&
