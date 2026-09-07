@@ -405,53 +405,19 @@ async function handleForgotPassword(req, res) {
     expiresAt,
   });
 
-  const { data, error } =
-  await resend.emails.send({
-   // from:
-    //  "Peak Lead Platform <onboarding@resend.dev>",
-    //to: user.email,
-   // subject: "Reset your Peak password",
-   // html: `
-     // <h2>Reset your Peak password</h2>
-
-      //<p>
-        //We received a request to reset your
-        //Peak Lead Platform password.
-      //</p>
-
-      //<p>
-        //<a href="${resetUrl}">
-          //Reset Password
-        //</a>
-      //</p>
-
-      //<p>
-       // This link expires in 30 minutes
-        //and can only be used once.
-      //</p>
-
-      //<p>
-        //If you didn't request this,
-        //you can ignore this email.
-      //</p>
-    //`,
-  //});
-
-if (error) {
-  console.error(
-    "Resend password reset error:",
-    error
+if (
+  process.env.NODE_ENV !== "production"
+) {
+  console.log(
+    "Development password reset URL:",
+    resetUrl
   );
 
-  return sendJson(res, 500, {
-    error: "Unable to send reset email.",
+  return sendJson(res, 200, {
+    success: true,
+    resetUrl,
   });
 }
-
-console.log(
-  "Password reset email sent:",
-  data
-);
 
 return sendJson(res, 200, {
   success: true,
