@@ -23,11 +23,9 @@ function escapeHtml(value = "") {
 }
 const loginLink = document.getElementById("login-link");
 const logoutButton = document.getElementById("logout-button");
-const demoModeBanner =
-  document.getElementById("demo-mode-banner");
 
-const resetDemoButton =
-  document.getElementById("reset-demo-button");
+
+
 const adminCustomersLink =
   document.getElementById(
     "admin-customers-link"
@@ -40,17 +38,11 @@ async function updateAuthUI() {
 
     let user = null;
 
+
     if (loggedIn) {
       const data = await response.json();
 
       user = data.user || null;
-    }
-
-    if (demoModeBanner) {
-      demoModeBanner.classList.toggle(
-        "hidden",
-        loggedIn
-      );
     }
 
     if (loginLink) {
@@ -94,41 +86,8 @@ logoutButton?.addEventListener(
     }
   }
 );
-function getVisitorDemoLeads() {
-  try {
-    return JSON.parse(
-      localStorage.getItem(
-        "peak-demo-leads"
-      ) || "[]"
-    );
-  } catch {
-    return [];
-  }
-}
 
-function saveVisitorDemoLead(lead) {
-  const leads = getVisitorDemoLeads();
 
-  leads.unshift(lead);
-
-  localStorage.setItem(
-    "peak-demo-leads",
-    JSON.stringify(leads.slice(0, 20))
-  );
-}
-resetDemoButton?.addEventListener(
-  "click",
-  async () => {
-    localStorage.removeItem("peak-demo-leads");
-
-    await loadDashboard();
-
-    if (formStatus) {
-      formStatus.textContent =
-        "Demo reset. Sample data restored.";
-    }
-  }
-);
 
 async function showAdminControls() {
   const adminElements =
@@ -176,10 +135,11 @@ async function loadDashboard() {
       currentUser &&
       currentUser.clientId;
 
-    const endpoint =
-      isCustomerUser
-        ? "/api/pipeline"
-        : "/api/demo";
+   if (!isCustomerUser) {
+  return;
+}
+
+const endpoint = "/api/pipeline";
 
     const response =
       await fetch(endpoint);
@@ -200,40 +160,7 @@ if (!response.ok) {
   );
 }
 
-    if (!isCustomerUser) {
-      const visitorLeads =
-        getVisitorDemoLeads();
-
-      data.leads = [
-        ...visitorLeads,
-        ...(data.leads || []),
-      ];
-
-      data.metrics = {
-        total:
-          data.leads.length,
-
-        highPriority:
-          data.leads.filter(
-            (lead) =>
-              Number(lead.score) >= 75
-          ).length,
-
-        qualified:
-          data.leads.filter(
-            (lead) =>
-              Number(lead.score) >= 55
-          ).length,
-
-        active:
-          data.leads.filter(
-            (lead) =>
-              !["Closed", "Lost"].includes(
-                lead.stage
-              )
-          ).length,
-      };
-    }
+    
 
     renderMetrics(
       data.metrics || {},
@@ -339,7 +266,7 @@ function renderPipeline(leads) {
     empty.className = "dashboard-empty";
 
     empty.textContent =
-      "No leads yet. Submit the live demo form below.";
+      "No leads yet. Add your first lead to get started.";
 
     pipelineCard.appendChild(empty);
     return;
@@ -717,7 +644,6 @@ if (gclid && !utmSource) {
 }
 
   const payload = {
-  clientSlug: "peak-demo",
 
   name: formData.get("name"),
   email: formData.get("email"),
@@ -750,9 +676,12 @@ if (gclid && !utmSource) {
     const authCheck =
   await fetch("/api/me");
 
-const leadEndpoint = authCheck.ok
-  ? "/api/leads"
-  : "/api/demo/leads";
+if (!authCheck.ok) {
+  window.location.href = "/login.html";
+  return;
+}
+
+const leadEndpoint = "/api/leads";
 
 const response = await fetch(leadEndpoint, {
       method: "POST",
@@ -783,9 +712,7 @@ const response = await fetch(leadEndpoint, {
     formStatus.textContent =
       "Lead captured and scored successfully.";
 
-     if (data.demo && data.lead) {
-  saveVisitorDemoLead(data.lead);
-} 
+
 
     leadForm.reset();
 
@@ -905,11 +832,12 @@ const scoringRules = {
           },
 
           body: JSON.stringify({
-            clientSlug: "peak-demo",
+
             scoringRules,
           }),
         }
       );
+
 
       const data = await response.json();
 
