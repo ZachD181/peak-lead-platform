@@ -498,9 +498,9 @@ async function handleStripeWebhook(req, res) {
           }
         );
 
-        console.log(
-          `Activated subscription for client ${clientId}`
-        );
+        
+       
+        
       }
     }
 
