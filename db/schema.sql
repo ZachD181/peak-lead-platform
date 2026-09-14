@@ -9,6 +9,31 @@ create table if not exists clients (
   updated_at timestamptz not null default now()
 );
 
+
+create table if not exists campaigns (
+  id uuid primary key default gen_random_uuid(),
+
+  client_id uuid not null
+    references clients(id)
+    on delete cascade,
+
+  name text not null,
+  source text not null default '',
+
+  budget numeric(12, 2),
+
+  start_date date,
+  end_date date,
+
+  landing_page_url text not null default '',
+
+  status text not null default 'active',
+
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+
 create table if not exists leads (
   id uuid primary key,
   client_id uuid not null references clients(id) on delete cascade,
@@ -55,6 +80,15 @@ create table if not exists lead_activities (
 
 create index if not exists idx_clients_slug
   on clients(slug);
+
+ create index if not exists idx_campaigns_client
+  on campaigns(client_id);
+
+create index if not exists idx_campaigns_status
+  on campaigns(client_id, status);
+
+create index if not exists idx_campaigns_created_at
+  on campaigns(client_id, created_at desc);
 
 create index if not exists idx_leads_client
   on leads(client_id);
@@ -114,7 +148,7 @@ alter table clients
 
 alter table clients
   add column if not exists billing_subscription_id text;
-  
+
 alter table sessions
   alter column client_id drop not null;
 
@@ -213,4 +247,4 @@ create index if not exists idx_password_reset_tokens_user
   on password_reset_tokens(user_id);
 
 create index if not exists idx_password_reset_tokens_expires
-  on password_reset_tokens(expires_at); 
+  on password_reset_tokens(expires_at);

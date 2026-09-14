@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+
+  <title>Campaigns | Peak Lead Platform</title>
+
+  <link
+    rel="stylesheet"
+    href="/styles.css"
+  />
+</head>
+
+<body>
+  <nav class="navbar">
+  <div class="brand">
+    <span class="peak-mark">▲</span>
+    <span>PEAK</span>
+  </div>
+
+  <div class="nav-links">
+    <a href="/">Dashboard</a>
+    <a href="/campaigns.html">Campaigns</a>
+    <a href="/billing.html">Billing</a>
+    <a href="/account.html">Account</a>
+
+    <a
+      id="settings-link"
+      href="/#settings"
+      class="admin-only hidden"
+    >
+      Settings
+    </a>
+
+    <a
+      id="admin-customers-link"
+      href="/admin.html"
+      class="hidden"
+    >
+      Customers
+    </a>
+
+    <a
+      id="login-link"
+      href="/login.html"
+    >
+      Login
+    </a>
+
+    <button
+      id="logout-button"
+      class="hidden"
+      type="button"
+    >
+      Log Out
+    </button>
+  </div>
+</nav>
+
+  <main class="container">
+    <section class="campaigns-page">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">
+            CAMPAIGN MANAGEMENT
+          </p>
+
+          <h1>Your Campaigns</h1>
+
+          <p>
+            Add and manage the marketing campaigns
+            generating leads for your business.
+          </p>
+        </div>
+      </div>
+
+      <section class="campaign-form-section">
+        <h2>Add Campaign</h2>
+
+        <form id="campaign-form">
+          <div class="form-grid">
+            <label>
+              Campaign Name
+              <input
+                type="text"
+                id="campaign-name"
+                required
+                placeholder="Google Search - Denver"
+              />
+            </label>
+
+            <label>
+              Source / Platform
+              <select id="campaign-source">
+                <option value="Google Ads">
+                  Google Ads
+                </option>
+                <option value="Facebook">
+                  Facebook
+                </option>
+                <option value="Instagram">
+                  Instagram
+                </option>
+                <option value="LinkedIn">
+                  LinkedIn
+                </option>
+                <option value="Organic Search">
+                  Organic Search
+                </option>
+                <option value="Referral">
+                  Referral
+                </option>
+                <option value="Other">
+                  Other
+                </option>
+              </select>
+            </label>
+
+            <label>
+              Monthly Budget
+              <input
+                type="number"
+                id="campaign-budget"
+                min="0"
+                step="0.01"
+                placeholder="1500"
+              />
+            </label>
+
+            <label>
+              Status
+              <select id="campaign-status">
+                <option value="active">
+                  Active
+                </option>
+                <option value="paused">
+                  Paused
+                </option>
+                <option value="completed">
+                  Completed
+                </option>
+              </select>
+            </label>
+
+            <label>
+              Start Date
+              <input
+                type="date"
+                id="campaign-start-date"
+              />
+            </label>
+
+            <label>
+              End Date
+              <input
+                type="date"
+                id="campaign-end-date"
+              />
+            </label>
+          </div>
+
+          <label>
+            Landing Page URL
+            <input
+              type="url"
+              id="campaign-landing-page"
+              placeholder="https://example.com/landing"
+            />
+          </label>
+
+          <button
+            type="submit"
+            class="primary-button"
+          >
+            Add Campaign
+          </button>
+
+          <p
+            id="campaign-message"
+            aria-live="polite"
+          ></p>
+        </form>
+      </section>
+
+      <section class="campaign-list-section">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">
+              ACTIVE MARKETING
+            </p>
+
+            <h2>Campaign List</h2>
+          </div>
+        </div>
+
+        <div id="campaign-list">
+          <p>Loading campaigns...</p>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script src="/campaigns.js"></script>
+</body>
+</html>

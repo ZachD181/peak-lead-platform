@@ -31,6 +31,8 @@ updateClientBilling,
 updateUserPassword,
 updateClientCompany,
 updateUserProfile,
+getCampaignsByClient,
+createCampaign,
 
 } = require("../lib/repository");
 
@@ -185,7 +187,14 @@ async function handleUpdateProfile(
     },
   });
 }
+async function handleGetCampaigns(req, res, session) {
+  const campaigns =
+    await getCampaignsByClient(session.clientId);
 
+  return sendJson(res, 200, {
+    campaigns,
+  });
+}
 async function handleCreateLead(
   req,
   res,
@@ -287,6 +296,53 @@ const scoringRules =
       tier: savedLead.tier,
       recommendedAction: savedLead.recommendedAction,
     },
+  });
+}
+
+async function handleCreateCampaign(req, res, session) {
+  const body = await readBody(req);
+
+  const name = cleanText(body.name, 120);
+
+  if (!name) {
+    return sendJson(res, 400, {
+      error: "Campaign name is required.",
+    });
+  }
+
+  const allowedStatuses = [
+    "active",
+    "paused",
+    "completed",
+  ];
+
+  const status = allowedStatuses.includes(body.status)
+    ? body.status
+    : "active";
+
+  const campaign = await createCampaign(
+    session.clientId,
+    {
+      name,
+      source: cleanText(body.source, 80),
+      budget:
+        body.budget === "" ||
+        body.budget === null ||
+        body.budget === undefined
+          ? null
+          : Number(body.budget),
+      startDate: body.startDate || null,
+      endDate: body.endDate || null,
+      landingPageUrl: cleanText(
+        body.landingPageUrl,
+        500
+      ),
+      status,
+    }
+  );
+
+  return sendJson(res, 201, {
+    campaign,
   });
 }
 
@@ -1914,6 +1970,38 @@ if (
   if (!session) return;
 
   return handleGetSettings(res, session);
+}
+
+if (
+  req.method === "GET" &&
+  url.pathname === "/api/campaigns"
+) {
+  const session =
+    await requireActiveSubscription(req, res);
+
+  if (!session) return;
+
+  return handleGetCampaigns(
+    req,
+    res,
+    session
+  );
+}
+
+if (
+  req.method === "POST" &&
+  url.pathname === "/api/campaigns"
+) {
+  const session =
+    await requireActiveSubscription(req, res);
+
+  if (!session) return;
+
+  return handleCreateCampaign(
+    req,
+    res,
+    session
+  );
 }
 
 if (

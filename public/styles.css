@@ -1339,3 +1339,140 @@ footer .brand {
   border-color: var(--accent);
   background: var(--accent-soft);
 }
+.campaigns-page {
+  padding: 48px 0 80px;
+}
+
+.campaigns-page .section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.campaign-form-section,
+.campaign-list-section {
+  margin-top: 36px;
+}
+
+.campaign-form-section {
+  padding: 28px;
+  border: 1px solid #2f363d;
+  border-radius: 20px;
+  background: #15191d;
+}
+
+.campaign-form-section h2 {
+  margin-top: 0;
+}
+
+.campaign-form-section form {
+  display: grid;
+  gap: 20px;
+}
+
+.campaign-form-section .form-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.campaign-form-section label {
+  display: grid;
+  gap: 8px;
+  font-weight: 700;
+}
+
+.campaign-form-section input,
+.campaign-form-section select {
+  width: 100%;
+  padding: 13px 14px;
+  border: 1px solid #3a424a;
+  border-radius: 10px;
+  background: #0d1115;
+  color: #ffffff;
+  font: inherit;
+}
+
+.campaign-form-section input:focus,
+.campaign-form-section select:focus {
+  outline: 2px solid #caff37;
+  outline-offset: 1px;
+}
+
+.campaign-form-section .primary-button {
+  width: fit-content;
+  min-width: 160px;
+}
+
+#campaign-message {
+  min-height: 24px;
+  margin: 0;
+}
+
+#campaign-list {
+  display: grid;
+  gap: 18px;
+}
+
+.campaign-card {
+  padding: 26px;
+  border: 1px solid #2f363d;
+  border-radius: 18px;
+  background: #15191d;
+}
+
+.campaign-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  margin-bottom: 18px;
+}
+
+.campaign-card-header h3 {
+  margin: 4px 0 0;
+  font-size: 1.35rem;
+}
+
+.campaign-details {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 12px 24px;
+}
+
+.campaign-details p {
+  margin: 0;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid #45505a;
+  background: #0d1115;
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
+@media (max-width: 760px) {
+  .campaign-form-section .form-grid,
+  .campaign-details {
+    grid-template-columns: 1fr;
+  }
+
+  .campaign-card-header,
+  .campaigns-page .section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+.campaigns-page {
+  max-width: 1200px;
+  margin: 0 auto;
+}
