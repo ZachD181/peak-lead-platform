@@ -446,18 +446,7 @@ footer .brand {
     flex-direction: column;
   }
 }
-.demo-section {
-  width: min(1180px, calc(100% - 40px));
-  margin: 0 auto;
-  padding: 40px 0 120px;
-}
-
-.demo-grid {
-  display: grid;
-  grid-template-columns: 1.3fr 0.7fr;
-  gap: 18px;
-  align-items: stretch;
-}
+ 
 
 .lead-form,
 .result-panel {
@@ -624,8 +613,7 @@ footer .brand {
 }
 
 @media (max-width: 800px) {
-  .demo-grid {
-    grid-template-columns: 1fr;
+  
   }
 
   .form-row {
@@ -1027,49 +1015,9 @@ footer .brand {
 .admin-only.hidden {
   display: none !important;
 }
-.demo-mode-banner {
-  width: min(1180px, calc(100% - 40px));
-  margin: 24px auto;
-  padding: 18px 22px;
-
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 14px;
-
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.demo-mode-banner strong {
-  font-size: 0.8rem;
-  letter-spacing: 0.12em;
-}
-
-.demo-mode-banner span {
-  flex: 1;
-  opacity: 0.8;
-}
-
-.demo-mode-banner button {
-  padding: 10px 16px;
-  border: 0;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 700;
-}
-
-.demo-mode-banner.hidden {
-  display: none !important;
-}
 
 @media (max-width: 700px) {
-  .demo-mode-banner {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+  
 }
 .admin-modal {
   position: fixed;
