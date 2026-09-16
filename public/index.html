@@ -139,6 +139,117 @@
       </div>
 
 
+      <div class="lead-entry-card">
+  <div class="pipeline-header">
+    <div>
+      <p class="eyebrow">ADD LEAD</p>
+      <h3>Add a New Lead</h3>
+      <p>
+        Add a lead to your pipeline and connect it
+        to one of your campaigns.
+      </p>
+    </div>
+  </div>
+
+  <form id="lead-form">
+    <div class="lead-form-grid">
+      <label>
+        Name
+        <input
+          type="text"
+          name="name"
+          required
+          placeholder="Customer name"
+        />
+      </label>
+
+      <label>
+        Email
+        <input
+          type="email"
+          name="email"
+          required
+          placeholder="customer@example.com"
+        />
+      </label>
+
+      <label>
+        Phone
+        <input
+          type="tel"
+          name="phone"
+          placeholder="555-555-5555"
+        />
+      </label>
+
+      <label>
+        Location
+        <input
+          type="text"
+          name="location"
+          placeholder="City, State"
+        />
+      </label>
+
+      <label>
+        Urgency
+        <select name="urgency">
+          <option value="">Select urgency</option>
+          <option value="immediately">Immediately</option>
+          <option value="within30Days">Within 30 days</option>
+          <option value="within90Days">Within 90 days</option>
+          <option value="researching">Just researching</option>
+        </select>
+      </label>
+
+      <label>
+        Readiness
+        <select name="readiness">
+          <option value="">Select readiness</option>
+          <option value="ready">Ready to move forward</option>
+          <option value="estimates">Getting estimates</option>
+          <option value="earlyResearch">Early research</option>
+        </select>
+      </label>
+
+      <label>
+        Campaign
+        <select
+          id="lead-campaign"
+          name="campaignId"
+        >
+          <option value="">No campaign</option>
+        </select>
+      </label>
+    </div>
+
+    <label>
+      Notes
+      <textarea
+        name="notes"
+        rows="4"
+        placeholder="Anything important about this lead..."
+      ></textarea>
+    </label>
+
+    <button
+      type="submit"
+      class="primary-button"
+    >
+      Add Lead
+    </button>
+
+    <p id="form-status"></p>
+  </form>
+
+  <div id="empty-result"></div>
+
+  <div id="lead-result" class="hidden">
+    <strong id="result-score"></strong>
+    <span id="result-tier"></span>
+    <p id="result-action"></p>
+  </div>
+</div>
       <div class="pipeline-card">
 
         <div class="pipeline-header">

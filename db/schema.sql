@@ -34,6 +34,8 @@ create table if not exists campaigns (
 );
 
 
+
+
 create table if not exists leads (
   id uuid primary key,
   client_id uuid not null references clients(id) on delete cascade,
@@ -67,6 +69,16 @@ create table if not exists leads (
   updated_at timestamptz not null default now()
 );
 
+
+
+alter table leads
+add column if not exists campaign_id uuid
+  references campaigns(id)
+  on delete set null;
+
+create index if not exists idx_leads_campaign
+  on leads(client_id, campaign_id);
+
 create table if not exists lead_activities (
   id uuid primary key,
   client_id uuid not null references clients(id) on delete cascade,
@@ -77,6 +89,11 @@ create table if not exists lead_activities (
 
   created_at timestamptz not null default now()
 );
+
+alter table leads
+add column if not exists campaign_id uuid
+  references campaigns(id)
+  on delete set null;
 
 create index if not exists idx_clients_slug
   on clients(slug);
@@ -95,6 +112,9 @@ create index if not exists idx_leads_client
 
 create index if not exists idx_leads_score
   on leads(client_id, score desc);
+
+  create index if not exists idx_leads_campaign
+  on leads(client_id, campaign_id);
 
 create index if not exists idx_leads_stage
   on leads(client_id, stage);

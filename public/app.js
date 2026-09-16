@@ -1,6 +1,6 @@
 const leadForm = document.getElementById("lead-form");
 const formStatus = document.getElementById("form-status");
-
+const leadCampaign = document.getElementById("lead-campaign");
 const emptyResult = document.getElementById("empty-result");
 const leadResult = document.getElementById("lead-result");
 
@@ -30,6 +30,37 @@ const adminCustomersLink =
   document.getElementById(
     "admin-customers-link"
   );
+
+  async function loadCampaignOptions() {
+  if (!leadCampaign) return;
+
+  try {
+    const response = await fetch("/api/campaigns");
+
+    if (!response.ok) {
+      return;
+    }
+
+    const data = await response.json();
+
+    leadCampaign.innerHTML =
+      '<option value="">No campaign</option>';
+
+    for (const campaign of data.campaigns || []) {
+      const option = document.createElement("option");
+
+      option.value = campaign.id;
+      option.textContent = campaign.name;
+
+      leadCampaign.appendChild(option);
+    }
+  } catch (error) {
+    console.error(
+      "Campaign loading error:",
+      error
+    );
+  }
+}
 async function updateAuthUI() {
   try {
     const response = await fetch("/api/me");
@@ -295,10 +326,12 @@ function renderPipeline(leads) {
           </strong>
 
           <span>
-            ${escapeHtml(
-              lead.source || "Direct"
-            )}
-          </span>
+  ${escapeHtml(
+    lead.campaignName
+      ? `${lead.source || "Direct"} • ${lead.campaignName}`
+      : lead.source || "Direct"
+  )}
+</span>
         </div>
       </div>
 
@@ -655,8 +688,9 @@ if (gclid && !utmSource) {
   notes: formData.get("notes"),
 
   source,
+ campaignId: formData.get("campaignId") || null,
 
-  utmSource,
+ utmSource,
   utmMedium,
   utmCampaign,
   utmTerm,
@@ -872,3 +906,5 @@ showAdminControls().then((isAdmin) => {
   }
 });
 updateAuthUI();
+
+loadCampaignOptions();

@@ -215,6 +215,28 @@ const scoringRules =
     session.clientId
   );
 
+  const campaignId =
+  cleanText(input.campaignId, 100) || null;
+
+if (campaignId) {
+  const campaigns =
+    await getCampaignsByClient(
+      session.clientId
+    );
+
+  const campaignBelongsToClient =
+    campaigns.some(
+      (campaign) =>
+        campaign.id === campaignId
+    );
+
+  if (!campaignBelongsToClient) {
+    return sendJson(res, 400, {
+      error: "Invalid campaign.",
+    });
+  }
+}
+
   
 
   const name = cleanText(input.name, 100);
@@ -243,6 +265,7 @@ const scoringRules =
   const lead = {
     id: crypto.randomUUID(),
     clientId: session.clientId,
+    campaignId,
 
     name,
     email,
