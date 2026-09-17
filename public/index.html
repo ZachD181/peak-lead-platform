@@ -345,6 +345,78 @@
 
     </section>
 
+    <section id="lead-manager" class="lead-manager hidden">
+  <div class="lead-manager-header">
+    <div>
+      <p class="eyebrow">LEAD MANAGEMENT</p>
+      <h3 id="manager-name">Lead Details</h3>
+      <p id="manager-source">Select a lead to manage it.</p>
+    </div>
+
+    <button
+      id="close-lead-manager"
+      class="lead-manager-close"
+      type="button"
+      aria-label="Close lead manager"
+    >
+      ×
+    </button>
+  </div>
+
+  <div class="lead-manager-details">
+    <div>
+      <span>Email</span>
+      <strong id="manager-email">—</strong>
+    </div>
+
+    <div>
+      <span>Phone</span>
+      <strong id="manager-phone">—</strong>
+    </div>
+
+    <div>
+      <span>Location</span>
+      <strong id="manager-location">—</strong>
+    </div>
+
+    <div>
+      <span>Score / Tier</span>
+      <strong id="manager-score">—</strong>
+    </div>
+  </div>
+
+  <form id="lead-manager-form">
+    <input id="manager-lead-id" type="hidden" />
+
+    <label for="manager-stage">
+      Stage
+      <select id="manager-stage" name="stage">
+        <option value="New">New</option>
+        <option value="Contacted">Contacted</option>
+        <option value="Qualified">Qualified</option>
+        <option value="Won">Won</option>
+        <option value="Lost">Lost</option>
+      </select>
+    </label>
+
+    <label for="manager-notes">
+      Notes
+      <textarea
+        id="manager-notes"
+        name="notes"
+        rows="5"
+        placeholder="Add notes about this lead..."
+      ></textarea>
+    </label>
+
+    <button class="primary-button" type="submit">
+      Save Changes
+    </button>
+
+    <p id="lead-manager-status"></p>
+  </form>
+</section>
+
 
  <section class="campaign-section">
 

@@ -1965,7 +1965,7 @@ if (
   req.method === "PATCH" &&
   match
 ) {
-  await requireActiveSubscription(req, res);
+  const session = await requireActiveSubscription(req, res);
 
   if (!session) return;
 

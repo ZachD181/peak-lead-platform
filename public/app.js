@@ -8,6 +8,23 @@ const resultScore = document.getElementById("result-score");
 const resultTier = document.getElementById("result-tier");
 const resultAction = document.getElementById("result-action");
 
+const leadManager = document.getElementById("lead-manager");
+const leadManagerForm = document.getElementById("lead-manager-form");
+const closeLeadManagerButton =
+  document.getElementById("close-lead-manager");
+
+const managerLeadId = document.getElementById("manager-lead-id");
+const managerName = document.getElementById("manager-name");
+const managerSource = document.getElementById("manager-source");
+const managerEmail = document.getElementById("manager-email");
+const managerPhone = document.getElementById("manager-phone");
+const managerLocation = document.getElementById("manager-location");
+const managerScore = document.getElementById("manager-score");
+const managerStage = document.getElementById("manager-stage");
+const managerNotes = document.getElementById("manager-notes");
+const leadManagerStatus =
+  document.getElementById("lead-manager-status");
+
 function escapeHtml(value = "") {
   return String(value).replace(
     /[&<>"']/g,
@@ -30,6 +47,43 @@ const adminCustomersLink =
   document.getElementById(
     "admin-customers-link"
   );
+
+  function openLeadManager(lead) {
+  if (!leadManager || !lead) return;
+
+  managerLeadId.value = lead.id || "";
+  managerName.textContent = lead.name || "Lead Details";
+
+  managerSource.textContent = lead.campaignName
+    ? `${lead.source || "Direct"} • ${lead.campaignName}`
+    : lead.source || "Direct";
+
+  managerEmail.textContent = lead.email || "Not provided";
+  managerPhone.textContent = lead.phone || "Not provided";
+  managerLocation.textContent = lead.location || "Not provided";
+
+  managerScore.textContent =
+    `${Number(lead.score) || 0} • ${lead.tier || "Nurture"}`;
+
+  managerStage.value = lead.stage || "New";
+  managerNotes.value = lead.notes || "";
+
+  leadManagerStatus.textContent = "";
+
+  leadManager.classList.remove("hidden");
+
+  leadManager.scrollIntoView({
+    behavior: "smooth",
+    block: "start",
+  });
+}
+
+function closeLeadManager() {
+  if (!leadManager) return;
+
+  leadManager.classList.add("hidden");
+  leadManagerStatus.textContent = "";
+}
 
   async function loadCampaignOptions() {
   if (!leadCampaign) return;
@@ -314,6 +368,14 @@ function renderPipeline(leads) {
     const row = document.createElement("div");
     row.className = "lead-row";
 
+    row.dataset.leadId = lead.id;
+row.setAttribute("role", "button");
+row.setAttribute("tabindex", "0");
+row.setAttribute(
+  "aria-label",
+  `Manage lead ${lead.name}`
+);
+
     row.innerHTML = `
       <div class="lead-person">
         <div class="avatar">
@@ -351,6 +413,17 @@ function renderPipeline(leads) {
         )}
       </div>
     `;
+
+    row.addEventListener("click", () => {
+  openLeadManager(lead);
+});
+
+row.addEventListener("keydown", (event) => {
+  if (event.key === "Enter" || event.key === " ") {
+    event.preventDefault();
+    openLeadManager(lead);
+  }
+});
 
     pipelineCard.appendChild(row);
   });
@@ -897,6 +970,66 @@ const scoringRules = {
     }
   }
 );
+
+closeLeadManagerButton?.addEventListener("click", () => {
+  closeLeadManager();
+});
+leadManagerForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  const leadId = managerLeadId.value;
+
+  if (!leadId) {
+    leadManagerStatus.textContent = "Unable to identify this lead.";
+    return;
+  }
+
+  leadManagerStatus.textContent = "Saving changes...";
+
+  try {
+    const response = await fetch(
+      `/api/leads/${encodeURIComponent(leadId)}`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          stage: managerStage.value,
+          notes: managerNotes.value,
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.error || "Unable to update lead."
+      );
+    }
+
+   await loadDashboard();
+
+openLeadManager(data.lead);
+
+leadManagerStatus.textContent =
+  "Lead updated successfully.";
+  setTimeout(() => {
+  if (
+    leadManagerStatus.textContent ===
+    "Lead updated successfully."
+  ) {
+    leadManagerStatus.textContent = "";
+  }
+}, 4000);
+  } catch (error) {
+    console.error("Lead update error:", error);
+
+    leadManagerStatus.textContent =
+      error.message || "Unable to update lead.";
+  }
+});
     
 loadDashboard();
 
