@@ -1193,8 +1193,15 @@ async function handleGetSettings(res, session) {
     });
   }
 
+  const scoringRules = await getScoringRulesByClient(
+    session.clientId
+  );
+
   return sendJson(res, 200, {
-    client,
+    client: {
+      ...client,
+      scoringRules: scoringRules || client.scoringRules || null,
+    },
   });
 }
 
