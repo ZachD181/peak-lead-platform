@@ -382,6 +382,31 @@ async function handleCaptureLead(req, res) {
     });
   }
 
+  const subscriptionStatus =
+  client.subscription_status ||
+  client.subscriptionStatus ||
+  "";
+
+const trialEndsAt =
+  client.trial_ends_at ||
+  client.trialEndsAt ||
+  null;
+
+const hasAccess =
+  subscriptionStatus === "active" ||
+  (
+    subscriptionStatus === "trialing" &&
+    trialEndsAt &&
+    new Date(trialEndsAt).getTime() > Date.now()
+  );
+
+if (!hasAccess) {
+  return sendJson(res, 402, {
+    error: "Subscription required.",
+    code: "SUBSCRIPTION_REQUIRED",
+  });
+}
+
   const session = {
     clientId: client.id,
   };
