@@ -151,11 +151,40 @@ if (!response.ok) {
   billingSubtitle.textContent =
     "Restart your subscription to restore full access to Peak.";
 } else if (status === "trialing") {
-  billingTitle.textContent =
-    "Your Peak trial";
+  billingTitle.textContent = "Your Peak trial";
 
-  billingSubtitle.textContent =
-    "Manage your trial or upgrade to continue using Peak.";
+  if (data.trialEndsAt) {
+    const trialEnd = new Date(data.trialEndsAt);
+    const now = new Date();
+
+    const millisecondsRemaining =
+      trialEnd.getTime() - now.getTime();
+
+    const daysRemaining = Math.max(
+      0,
+      Math.ceil(
+        millisecondsRemaining /
+        (1000 * 60 * 60 * 24)
+      )
+    );
+
+    const formattedDate =
+      trialEnd.toLocaleDateString(
+        undefined,
+        {
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+        }
+      );
+
+    billingSubtitle.innerHTML =
+      `Trial ends ${formattedDate}<br>` +
+      `${daysRemaining} ${daysRemaining === 1 ? "day" : "days"} remaining`;
+  } else {
+    billingSubtitle.textContent =
+      "Manage your trial or upgrade to continue using Peak.";
+  }
 }
 
     const hasStripeCustomer =
