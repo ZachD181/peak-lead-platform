@@ -282,7 +282,7 @@ async function loadAccount() {
 `;
 
 } else if (
-  status === "trial" &&
+  status === "trialing" &&
   data.trialEndsAt
 ) {
   const trialEnd =

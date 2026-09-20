@@ -5,6 +5,7 @@ create table if not exists clients (
   name text not null,
   slug text not null unique,
   industry text not null default '',
+  capture_key text unique,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

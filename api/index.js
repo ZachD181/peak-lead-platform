@@ -22,6 +22,7 @@ createSession,
 getSession,
 deleteSession,
 getClientById,
+getClientByCaptureKey,
 getClientSettingsById,
 updateClientScoringRulesById,
 getUsersByClient,
@@ -90,6 +91,42 @@ function readBody(req) {
 
     req.on("error", reject);
   });
+}
+
+
+async function handleCaptureLead(req, res) {
+  const captureKey = cleanText(
+    req.headers["x-capture-key"],
+    200
+  );
+
+  if (!captureKey) {
+    return sendJson(res, 401, {
+      error: "Capture key is required.",
+    });
+  }
+
+console.log("CAPTURE: looking up client");
+
+
+  const client =
+    await getClientByCaptureKey(captureKey);
+
+  if (!client) {
+    return sendJson(res, 401, {
+      error: "Invalid capture key.",
+    });
+  }
+
+  const session = {
+    clientId: client.id,
+  };
+
+  return handleCreateLead(
+    req,
+    res,
+    session
+  );
 }
 
 function readRawBody(req) {
@@ -322,6 +359,42 @@ if (campaignId) {
   });
 }
 
+async function handleCaptureLead(req, res) {
+  const input = await readBody(req);
+
+  const captureKey = cleanText(
+    req.headers["x-capture-key"],
+    200
+  );
+
+  if (!captureKey) {
+    return sendJson(res, 401, {
+      error: "Capture key is required.",
+    });
+  }
+
+  const client =
+    await getClientByCaptureKey(captureKey);
+
+  if (!client) {
+    return sendJson(res, 401, {
+      error: "Invalid capture key.",
+    });
+  }
+
+  const session = {
+    clientId: client.id,
+  };
+
+  
+
+  return handleCreateLead(
+    req,
+    res,
+    session
+  );
+}
+
 async function handleCreateCampaign(req, res, session) {
   const body = await readBody(req);
 
@@ -483,6 +556,9 @@ async function handleForgotPassword(req, res) {
     tokenHash,
     expiresAt,
   });
+
+  const resetUrl =
+  `http://localhost:3000/reset-password.html?token=${resetToken}`;
 
 if (
   process.env.NODE_ENV !== "production"
@@ -1474,7 +1550,7 @@ async function requireActiveSubscription(req, res) {
 
   // Valid trial
   if (
-    subscriptionStatus === "trial" &&
+    subscriptionStatus === "trialing" &&
     trialEndsAt &&
     new Date(trialEndsAt).getTime() >
       Date.now()
@@ -1927,6 +2003,13 @@ return handleCreateLead(
   res,
   session
 );
+}
+
+if (
+  req.method === "POST" &&
+  url.pathname === "/api/capture"
+) {
+  return handleCaptureLead(req, res);
 }
 
 if (
