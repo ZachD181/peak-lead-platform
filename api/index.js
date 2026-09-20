@@ -715,6 +715,15 @@ async function handleStripeWebhook(req, res) {
 
             billingSubscriptionId:
               subscription.id,
+              cancelAtPeriodEnd:
+  subscription.cancel_at_period_end,
+
+currentPeriodEnd:
+  subscription.current_period_end
+    ? new Date(
+        subscription.current_period_end * 1000
+      ).toISOString()
+    : null,
           }
         );
       }

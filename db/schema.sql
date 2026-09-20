@@ -170,6 +170,12 @@ alter table clients
 alter table clients
   add column if not exists billing_subscription_id text;
 
+alter table clients
+  add column if not exists cancel_at_period_end boolean not null default false;
+
+alter table clients
+  add column if not exists current_period_end timestamptz;
+
 alter table sessions
   alter column client_id drop not null;
 
