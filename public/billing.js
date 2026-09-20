@@ -150,7 +150,7 @@ if (!response.ok) {
 
   billingSubtitle.textContent =
     "Restart your subscription to restore full access to Peak.";
-} else if (status === "trial") {
+} else if (status === "trialing") {
   billingTitle.textContent =
     "Your Peak trial";
 
