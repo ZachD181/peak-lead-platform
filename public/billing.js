@@ -223,17 +223,19 @@ if (!response.ok) {
     }
 
     if (billingMessage) {
-      if (status === "active") {
-        billingMessage.textContent =
-          "Your Peak subscription is active.";
-      } else if (status === "canceled") {
-        billingMessage.textContent =
-          "Your subscription is canceled. Upgrade to restore access.";
-      } else if (status === "trial") {
-        billingMessage.textContent =
-          "Your Peak account is currently on trial.";
-      }
-    }
+  if (status === "active" && data.cancelAtPeriodEnd) {
+    billingMessage.textContent = "";
+  } else if (status === "active") {
+    billingMessage.textContent =
+      "Your Peak subscription is active.";
+  } else if (status === "canceled") {
+    billingMessage.textContent =
+      "Your Peak subscription is canceled. Upgrade to restore access.";
+  } else if (status === "trialing") {
+    billingMessage.textContent =
+      "Your Peak account is currently on trial.";
+  }
+}
   } catch (error) {
     if (billingMessage) {
       billingMessage.textContent =
