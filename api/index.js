@@ -1014,7 +1014,7 @@ async function handleRegister(req, res) {
     new Date().toISOString();
 
     const trialEndsAt = new Date(
-  Date.now() + 14 * 24 * 60 * 60 * 1000
+  Date.now() + 30 * 24 * 60 * 60 * 1000
 ).toISOString();
 
   const client =
@@ -1027,7 +1027,7 @@ async function handleRegister(req, res) {
 
      status: "active",
     plan: "standard",
-    subscriptionStatus: "trial",
+    subscriptionStatus: "trialing",
     trialEndsAt: trialEndsAt,
 
       createdAt: now,
