@@ -40,6 +40,7 @@ function escapeHtml(value = "") {
 }
 const loginLink = document.getElementById("login-link");
 const logoutButton = document.getElementById("logout-button");
+const registerLink = document.getElementById("register-link");
 
 
 
@@ -136,6 +137,12 @@ async function updateAuthUI() {
         loggedIn
       );
     }
+    if (registerLink) {
+  registerLink.classList.toggle(
+    "hidden",
+    loggedIn
+  );
+}
 
     if (logoutButton) {
       logoutButton.classList.toggle(
