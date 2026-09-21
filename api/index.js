@@ -1904,9 +1904,15 @@ if (periodEnd) {
       null,
 
     billingSubscriptionId,
-    currentPeriodEnd,
 
-    trialEndsAt:
+cancelAtPeriodEnd:
+  client.cancel_at_period_end ??
+  client.cancelAtPeriodEnd ??
+  false,
+
+currentPeriodEnd,
+
+trialEndsAt:
       client.trial_ends_at ||
       client.trialEndsAt ||
       null,

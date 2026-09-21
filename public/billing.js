@@ -142,9 +142,27 @@ if (!response.ok) {
   billingTitle.textContent =
     "Manage your Peak subscription";
 
-  billingSubtitle.textContent =
-    "Update your billing details or manage your current Peak subscription.";
-} else if (status === "canceled") {
+  if (data.cancelAtPeriodEnd && data.currentPeriodEnd) {
+    const periodEnd =
+      new Date(data.currentPeriodEnd);
+
+    const formattedDate =
+      periodEnd.toLocaleDateString(
+        undefined,
+        {
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+        }
+      );
+
+    billingSubtitle.textContent =
+      `Your Peak subscription is active until ${formattedDate} and will not renew.`;
+  } else {
+    billingSubtitle.textContent =
+      "Update your billing details or manage your current Peak subscription.";
+  }
+}else if (status === "canceled") {
   billingTitle.textContent =
     "Your Peak subscription has ended";
 
