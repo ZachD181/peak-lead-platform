@@ -594,7 +594,7 @@ const resetUrl =
 });
 
   if (resend) {
-  await resend.emails.send({
+    const resendResult = await resend.emails.send({
     from: "Peak Lead Platform <noreply@peakleadplatform.com>",
     to: email,
     subject: "Reset your Peak password",
@@ -608,6 +608,7 @@ const resetUrl =
       <p>If you did not request this, you can ignore this email.</p>
     `,
   });
+  console.log("RESEND RESULT:", resendResult);
 }
 
 if (
