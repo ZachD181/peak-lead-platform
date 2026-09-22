@@ -582,8 +582,28 @@ async function handleForgotPassword(req, res) {
     expiresAt,
   });
 
-  const resetUrl =
-  `http://localhost:3000/reset-password.html?token=${resetToken}`;
+ const origin =
+  `${req.headers["x-forwarded-proto"] || "https"}://${req.headers.host}`;
+
+const resetUrl =
+  `${origin}/reset-password.html?token=${resetToken}`;
+
+  if (resend) {
+  await resend.emails.send({
+    from: "Peak Lead Platform <noreply@peakleadplatform.com>",
+    to: email,
+    subject: "Reset your Peak password",
+    html: `
+      <h2>Reset your Peak password</h2>
+      <p>We received a request to reset your password.</p>
+      <p>
+        <a href="${resetUrl}">Reset your password</a>
+      </p>
+      <p>This link expires in 30 minutes.</p>
+      <p>If you did not request this, you can ignore this email.</p>
+    `,
+  });
+}
 
 if (
   process.env.NODE_ENV !== "production"
