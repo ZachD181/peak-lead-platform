@@ -608,10 +608,10 @@ const resetUrl =
       <p>If you did not request this, you can ignore this email.</p>
     `,
   });
-  console.log(
-  "RESEND ERROR:",
-  JSON.stringify(resendResult.error, null, 2)
-);
+ if (resendResult.error) {
+  console.error("Password reset email failed:", resendResult.error.message);
+}
+
 }
 
 if (
