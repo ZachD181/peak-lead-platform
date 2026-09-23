@@ -583,7 +583,7 @@ async function handleForgotPassword(req, res) {
   });
 
  const origin =
-  `${req.headers["x-forwarded-proto"] || "https"}://${req.headers.host}`;
+  process.env.APP_URL || "http://localhost:3000";
 
 const resetUrl =
   `${origin}/reset-password.html?token=${resetToken}`;
