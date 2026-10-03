@@ -1292,6 +1292,13 @@ async function handleUpdateLead(
           ? undefined
           : cleanText(input.notes, 3000),
 
+          nextFollowUp:
+  input.nextFollowUp === undefined
+    ? undefined
+    : input.nextFollowUp === null
+      ? null
+      : cleanText(input.nextFollowUp, 100),
+
       recommendedAction:
         input.recommendedAction === undefined
           ? undefined

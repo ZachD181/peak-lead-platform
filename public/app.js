@@ -21,6 +21,7 @@ const managerPhone = document.getElementById("manager-phone");
 const managerLocation = document.getElementById("manager-location");
 const managerScore = document.getElementById("manager-score");
 const managerStage = document.getElementById("manager-stage");
+const managerFollowUp = document.getElementById("manager-follow-up");
 const managerNotes = document.getElementById("manager-notes");
 const leadManagerStatus =
   document.getElementById("lead-manager-status");
@@ -67,6 +68,19 @@ const adminCustomersLink =
     `${Number(lead.score) || 0} • ${lead.tier || "Nurture"}`;
 
   managerStage.value = lead.stage || "New";
+  if (lead.nextFollowUp) {
+  const followUpDate = new Date(lead.nextFollowUp);
+
+  managerFollowUp.value = Number.isNaN(followUpDate.getTime())
+    ? ""
+    : new Date(
+        followUpDate.getTime() - followUpDate.getTimezoneOffset() * 60000
+      )
+        .toISOString()
+        .slice(0, 16);
+} else {
+  managerFollowUp.value = "";
+}
   managerNotes.value = lead.notes || "";
 
   leadManagerStatus.textContent = "";
@@ -1001,10 +1015,13 @@ leadManagerForm?.addEventListener("submit", async (event) => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          stage: managerStage.value,
-          notes: managerNotes.value,
-        }),
+       body: JSON.stringify({
+  stage: managerStage.value,
+  notes: managerNotes.value,
+  nextFollowUp: managerFollowUp.value
+    ? new Date(managerFollowUp.value).toISOString()
+    : null,
+}),
       }
     );
 

@@ -64,6 +64,7 @@ create table if not exists leads (
   score integer not null default 0,
   tier text not null default 'Nurture',
   stage text not null default 'New',
+  next_follow_up timestamptz,
   recommended_action text not null default '',
 
   created_at timestamptz not null default now(),
