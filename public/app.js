@@ -23,8 +23,8 @@ const managerScore = document.getElementById("manager-score");
 const managerStage = document.getElementById("manager-stage");
 const managerFollowUp = document.getElementById("manager-follow-up");
 const managerNotes = document.getElementById("manager-notes");
-const leadManagerStatus =
-  document.getElementById("lead-manager-status");
+const leadManagerStatus = document.getElementById("lead-manager-status");
+  const completeFollowUpButton = document.getElementById("complete-follow-up");
 
 function escapeHtml(value = "") {
   return String(value).replace(
@@ -1158,7 +1158,56 @@ leadManagerStatus.textContent =
       error.message || "Unable to update lead.";
   }
 });
-    
+    completeFollowUpButton?.addEventListener("click", async () => {
+  const leadId = managerLeadId.value;
+
+  if (!leadId) {
+    leadManagerStatus.textContent = "Unable to identify this lead.";
+    return;
+  }
+
+  leadManagerStatus.textContent = "Completing follow-up...";
+
+  try {
+    const response = await fetch(
+      `/api/leads/${encodeURIComponent(leadId)}`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          nextFollowUp: null,
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.error || "Unable to complete follow-up."
+      );
+    }
+
+    managerFollowUp.value = "";
+
+    await loadDashboard();
+
+    openLeadManager(data.lead);
+
+    leadManagerStatus.textContent =
+      "Follow-up completed.";
+  } catch (error) {
+    console.error(
+      "Complete follow-up error:",
+      error
+    );
+
+    leadManagerStatus.textContent =
+      error.message || "Unable to complete follow-up.";
+  }
+});
 loadDashboard();
 
 showAdminControls().then((isAdmin) => {

@@ -1740,3 +1740,14 @@ footer .brand {
   max-width: 1200px;
   margin: 32px auto;
 }
+#complete-follow-up {
+  background: #d4ff32;
+  color: #0b1014;
+  border: 1px solid #d4ff32;
+  font-weight: 700;
+}
+
+#complete-follow-up:hover {
+  filter: brightness(0.92);
+  cursor: pointer;
+}
