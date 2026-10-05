@@ -277,6 +277,110 @@ if (!response.ok) {
       data.leads || []
     );
 
+    renderFollowUps(
+  data.leads || []
+);
+
+function renderFollowUps(leads) {
+  const container = document.getElementById("follow-up-list");
+
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  const now = new Date();
+
+  const followUps = leads
+    .filter((lead) => lead.nextFollowUp)
+    .map((lead) => ({
+      lead,
+      followUpDate: new Date(lead.nextFollowUp),
+    }))
+    .filter(({ followUpDate }) => !Number.isNaN(followUpDate.getTime()))
+    .sort((a, b) => a.followUpDate - b.followUpDate);
+
+  if (!followUps.length) {
+    const empty = document.createElement("div");
+    empty.className = "dashboard-empty";
+    empty.textContent = "No follow-ups scheduled.";
+    container.appendChild(empty);
+    return;
+  }
+
+  followUps.forEach(({ lead, followUpDate }) => {
+    const startOfToday = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate()
+    );
+
+    const startOfTomorrow = new Date(startOfToday);
+    startOfTomorrow.setDate(startOfTomorrow.getDate() + 1);
+
+    let status = "Upcoming";
+
+    if (followUpDate < now) {
+      status = "Overdue";
+    } else if (
+      followUpDate >= startOfToday &&
+      followUpDate < startOfTomorrow
+    ) {
+      status = "Due Today";
+    }
+
+    const row = document.createElement("div");
+    row.className = "lead-row";
+    row.setAttribute("role", "button");
+    row.setAttribute("tabindex", "0");
+
+    const initials = String(lead.name || "?")
+      .split(" ")
+      .map((part) => part.charAt(0))
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
+
+    const formattedDate = followUpDate.toLocaleString([], {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+
+    row.innerHTML = `
+      <div class="lead-person">
+        <div class="avatar">${escapeHtml(initials)}</div>
+
+        <div>
+          <strong>${escapeHtml(lead.name || "Lead")}</strong>
+          <span>${escapeHtml(lead.source || "Direct")}</span>
+        </div>
+      </div>
+
+      <div class="tier">
+        ${escapeHtml(status)}
+      </div>
+
+      <div class="action">
+        ${escapeHtml(formattedDate)}
+      </div>
+    `;
+
+    row.addEventListener("click", () => {
+      openLeadManager(lead);
+    });
+
+    row.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        openLeadManager(lead);
+      }
+    });
+
+    container.appendChild(row);
+  });
+}
+
     renderCampaignPerformance(
       data.leads || []
     );

@@ -1718,3 +1718,25 @@ footer .brand {
     grid-template-columns: 1fr;
   }
 }
+
+#manager-follow-up {
+  width: 100%;
+  margin-top: 10px;
+  padding: 14px 16px;
+  border: 1px solid #34404a;
+  border-radius: 10px;
+  background: #0b1014;
+  color: #ffffff;
+  font: inherit;
+  color-scheme: dark;
+}
+
+#manager-follow-up:focus {
+  outline: none;
+  border-color: #d4ff32;
+}
+.follow-up-card {
+  width: calc(100% - 48px);
+  max-width: 1200px;
+  margin: 32px auto;
+}
