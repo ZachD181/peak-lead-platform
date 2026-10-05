@@ -329,7 +329,12 @@ function renderFollowUps(leads) {
     }
 
     const row = document.createElement("div");
-    row.className = "lead-row";
+    const statusClass = status
+  .toLowerCase()
+  .replace(/\s+/g, "-");
+
+row.className =
+   `lead-row follow-up-row ${statusClass}`;
     row.setAttribute("role", "button");
     row.setAttribute("tabindex", "0");
 
@@ -357,9 +362,9 @@ function renderFollowUps(leads) {
         </div>
       </div>
 
-      <div class="tier">
-        ${escapeHtml(status)}
-      </div>
+    <div class="tier follow-up-status ${statusClass}">
+    ${escapeHtml(status)}
+    </div>
 
       <div class="action">
         ${escapeHtml(formattedDate)}

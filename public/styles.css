@@ -1751,3 +1751,36 @@ footer .brand {
   filter: brightness(0.92);
   cursor: pointer;
 }
+.follow-up-status {
+  font-weight: 800;
+}
+
+.follow-up-status.overdue {
+  background: rgba(255, 82, 82, 0.14);
+  border-color: rgba(255, 82, 82, 0.45);
+  color: #ff6b6b;
+}
+
+.follow-up-status.due-today {
+  background: rgba(212, 255, 50, 0.14);
+  border-color: rgba(212, 255, 50, 0.45);
+  color: #d4ff32;
+}
+
+.follow-up-status.upcoming {
+  background: rgba(120, 140, 155, 0.14);
+  border-color: rgba(120, 140, 155, 0.35);
+  color: #b8c4cc;
+}
+
+.follow-up-row.overdue {
+  border-left: 3px solid #ff6b6b;
+}
+
+.follow-up-row.due-today {
+  border-left: 3px solid #d4ff32;
+}
+.follow-up-status {
+  white-space: nowrap;
+  min-width: fit-content;
+}
