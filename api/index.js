@@ -1185,6 +1185,10 @@ async function handlePipeline(req, res, session) {
       session.clientId
     );
 
+  const users = await getUsersByClient(
+      session.clientId
+);
+
   return sendJson(res, 200, {
     client: {
       id: session.clientId,
@@ -1194,6 +1198,15 @@ async function handlePipeline(req, res, session) {
 
     leads,
     activities,
+
+    users: users
+  .filter((user) => user.status === "active")
+  .map((user) => ({
+    id: user.id,
+    name: user.name,
+    role: user.role,
+  })),
+  
 
     metrics: {
       total: leads.length,
@@ -1306,8 +1319,13 @@ async function handleUpdateLead(
               input.recommendedAction,
               500
             ),
-
-      updatedAt,
+       assignedUserId:
+           input.assignedUserId === undefined
+           ? undefined
+           : input.assignedUserId === null
+           ? null
+      : cleanText(input.assignedUserId, 100),
+        updatedAt,
     }
   );
 

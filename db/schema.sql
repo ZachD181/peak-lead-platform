@@ -219,6 +219,14 @@ create unique index if not exists idx_users_email_lower
 create index if not exists idx_users_client
   on users(client_id);
 
+alter table leads
+  add column if not exists assigned_user_id uuid
+  references users(id)
+  on delete set null;
+
+create index if not exists idx_leads_assigned_user
+  on leads(client_id, assigned_user_id);
+
 create index if not exists idx_users_email
   on users(email);
 
@@ -276,3 +284,26 @@ create index if not exists idx_password_reset_tokens_user
 
 create index if not exists idx_password_reset_tokens_expires
   on password_reset_tokens(expires_at);
+  -- ============================================================
+-- LEAD ACTIVITY HISTORY
+-- ============================================================
+
+create table if not exists lead_activities (
+    id uuid primary key default gen_random_uuid(),
+    client_id uuid not null references clients(id) on delete cascade,
+    lead_id uuid not null references leads(id) on delete cascade,
+
+   type text not null,
+detail text not null default '',
+
+    created_at timestamptz not null default now()
+);
+
+create index if not exists idx_lead_activities_lead_id
+    on lead_activities(lead_id);
+
+create index if not exists idx_lead_activities_client_id
+    on lead_activities(client_id);
+
+create index if not exists idx_lead_activities_created_at
+    on lead_activities(created_at desc);

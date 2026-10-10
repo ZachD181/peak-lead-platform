@@ -21,10 +21,12 @@ const managerPhone = document.getElementById("manager-phone");
 const managerLocation = document.getElementById("manager-location");
 const managerScore = document.getElementById("manager-score");
 const managerStage = document.getElementById("manager-stage");
+const managerAssignedUser = document.getElementById("manager-assigned-user");
 const managerFollowUp = document.getElementById("manager-follow-up");
 const managerNotes = document.getElementById("manager-notes");
 const leadManagerStatus = document.getElementById("lead-manager-status");
   const completeFollowUpButton = document.getElementById("complete-follow-up");
+  let pipelineUsers = [];
 
 function escapeHtml(value = "") {
   return String(value).replace(
@@ -68,6 +70,18 @@ const adminCustomersLink =
     `${Number(lead.score) || 0} • ${lead.tier || "Nurture"}`;
 
   managerStage.value = lead.stage || "New";
+
+  managerAssignedUser.innerHTML =
+  `<option value="">Unassigned</option>` +
+  pipelineUsers
+    .map(
+      (user) =>
+        `<option value="${escapeHtml(user.id)}">${escapeHtml(user.name)}</option>`
+    )
+    .join("");
+
+managerAssignedUser.value = lead.assignedUserId || "";
+
   if (lead.nextFollowUp) {
   const followUpDate = new Date(lead.nextFollowUp);
 
@@ -266,7 +280,7 @@ if (!response.ok) {
   );
 }
 
-    
+    pipelineUsers = data.users || [];
 
     renderMetrics(
       data.metrics || {},
