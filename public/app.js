@@ -466,14 +466,37 @@ function getScoreClass(score) {
 }
 
 function renderPipeline(leads) {
-  const pipelineCard =
-    document.querySelector(".pipeline-card");
+ const pipelineBoard =
+  document.getElementById("pipeline-board");
 
-  if (!pipelineCard) return;
+if (!pipelineBoard) return;
 
-  pipelineCard
-    .querySelectorAll(".lead-row")
-    .forEach((row) => row.remove());
+pipelineBoard.innerHTML = "";
+
+const pipelineStages = [
+  "New",
+  "Appointment Set",
+  "Estimate Sent",
+  "Follow-Up",
+  "Won",
+  "Lost"
+];
+
+pipelineStages.forEach((stage) => {
+  const column = document.createElement("div");
+  column.className = "pipeline-column";
+  column.dataset.stage = stage;
+
+  column.innerHTML = `
+    <div class="pipeline-column-header">
+      <span>${escapeHtml(stage)}</span>
+      <span class="pipeline-count">0</span>
+    </div>
+    <div class="pipeline-column-leads"></div>
+  `;
+
+  pipelineBoard.appendChild(column);
+});
 
   if (!leads.length) {
     const empty = document.createElement("div");
@@ -483,7 +506,7 @@ function renderPipeline(leads) {
     empty.textContent =
       "No leads yet. Add your first lead to get started.";
 
-    pipelineCard.appendChild(empty);
+    pipelineBoard.appendChild(empty);
     return;
   }
 
@@ -537,6 +560,10 @@ row.setAttribute(
         ${escapeHtml(lead.tier)}
       </div>
 
+      <div class="lead-stage">
+        ${escapeHtml(lead.stage || "New")}
+      </div>
+
       <div class="action">
         ${escapeHtml(
           lead.recommendedAction
@@ -555,7 +582,23 @@ row.addEventListener("keydown", (event) => {
   }
 });
 
-    pipelineCard.appendChild(row);
+  const leadStage = lead.stage || "New";
+
+const stageColumn = pipelineBoard.querySelector(
+  `.pipeline-column[data-stage="${leadStage}"] .pipeline-column-leads`
+);
+
+if (stageColumn) {
+  stageColumn.appendChild(row);
+
+  const column = stageColumn.closest(".pipeline-column");
+  const count = column.querySelector(".pipeline-count");
+
+  if (count) {
+    count.textContent =
+      column.querySelectorAll(".lead-row").length;
+  }
+}
   });
 }
 function renderCampaignPerformance(leads) {
