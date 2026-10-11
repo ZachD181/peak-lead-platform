@@ -1882,3 +1882,46 @@ footer .brand {
   white-space: nowrap;
   min-width: fit-content;
 }
+/* Lead Activity History */
+
+.lead-activity-history {
+  margin-top: 24px;
+  padding: 20px;
+  background: #0b1014;
+  border: 1px solid #34404a;
+  border-radius: 12px;
+}
+
+.lead-activity-history h3 {
+  color: #d4ff32;
+  margin-bottom: 20px;
+}
+
+#lead-activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.lead-activity-item {
+  padding: 14px 16px;
+  background: #151c22;
+  border-left: 3px solid #d4ff32;
+  border-radius: 8px;
+}
+
+.lead-activity-item strong {
+  display: block;
+  color: #ffffff;
+  margin-bottom: 6px;
+}
+
+.lead-activity-item p {
+  color: #b8c4cc;
+  margin: 0 0 8px;
+}
+
+.lead-activity-item small {
+  color: #8b9aa5;
+  font-size: 12px;
+}

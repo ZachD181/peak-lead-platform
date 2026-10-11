@@ -1287,7 +1287,11 @@ async function handleUpdateLead(
 ) {
   const input = await readBody(req);
 
-  
+  const existingLeads = await getLeadsByClient(session.clientId);
+
+const previousLead = existingLeads.find(
+  (lead) => String(lead.id) === String(leadId)
+);
 
   const updatedAt = new Date().toISOString();
 
@@ -1335,14 +1339,43 @@ async function handleUpdateLead(
     });
   }
 
+  const changes = [];
+
+if (previousLead) {
+  if (previousLead.stage !== lead.stage) {
+    changes.push(
+      `Stage changed from ${previousLead.stage || "None"} to ${lead.stage || "None"}.`
+    );
+  }
+
+  if ((previousLead.notes || "") !== (lead.notes || "")) {
+    changes.push("Lead notes updated.");
+  }
+
+  const oldFollowUp = previousLead.nextFollowUp || null;
+  const newFollowUp = lead.nextFollowUp || null;
+
+  if (oldFollowUp !== newFollowUp) {
+    if (newFollowUp === null) {
+      changes.push("Follow-up completed or cleared.");
+    } else {
+      changes.push("Follow-up scheduled or rescheduled.");
+    }
+  }
+}
+
+
+  if (changes.length > 0) {
   await createActivity({
     id: crypto.randomUUID(),
     clientId: session.clientId,
     leadId: lead.id,
     type: "Updated",
-    detail: `Lead updated. Current stage: ${lead.stage}.`,
+    detail: changes.join(" "),
     createdAt: updatedAt,
   });
+  
+}
 
   return sendJson(res, 200, {
     lead,

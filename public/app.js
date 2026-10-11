@@ -24,6 +24,7 @@ const managerStage = document.getElementById("manager-stage");
 const managerAssignedUser = document.getElementById("manager-assigned-user");
 const managerFollowUp = document.getElementById("manager-follow-up");
 const managerNotes = document.getElementById("manager-notes");
+const leadActivityList = document.getElementById("lead-activity-list");
 const leadManagerStatus = document.getElementById("lead-manager-status");
   const completeFollowUpButton = document.getElementById("complete-follow-up");
   let pipelineUsers = [];
@@ -51,6 +52,46 @@ const adminCustomersLink =
   document.getElementById(
     "admin-customers-link"
   );
+
+  function renderLeadActivityHistory(leadId) {
+  if (!leadActivityList) return;
+
+  const activities = pipelineActivities
+    .filter((activity) =>
+      String(activity.lead_id || activity.leadId) === String(leadId)
+    )
+    .sort((a, b) =>
+      new Date(b.created_at || b.createdAt) -
+      new Date(a.created_at || a.createdAt)
+    );
+
+  if (activities.length === 0) {
+    leadActivityList.textContent = "No activity recorded yet.";
+    return;
+  }
+
+  leadActivityList.innerHTML = "";
+
+  activities.forEach((activity) => {
+    const item = document.createElement("div");
+    item.className = "lead-activity-item";
+
+    const title = document.createElement("strong");
+    title.textContent = activity.type || "Activity";
+
+    const detail = document.createElement("p");
+    detail.textContent = activity.detail || "";
+
+    const date = document.createElement("small");
+    const createdAt = activity.created_at || activity.createdAt;
+    date.textContent = createdAt
+      ? new Date(createdAt).toLocaleString()
+      : "";
+
+    item.append(title, detail, date);
+    leadActivityList.appendChild(item);
+  });
+}
 
   function openLeadManager(lead) {
   if (!leadManager || !lead) return;
@@ -98,6 +139,8 @@ managerAssignedUser.value = lead.assignedUserId || "";
   managerNotes.value = lead.notes || "";
 
   leadManagerStatus.textContent = "";
+  
+  renderLeadActivityHistory(lead.id);
 
   leadManager.classList.remove("hidden");
 
@@ -235,7 +278,7 @@ async function showAdminControls() {
     return false;
   }
 }
-
+let pipelineActivities = [];
 async function loadDashboard() {
   try {
     const authResponse =
@@ -281,6 +324,7 @@ if (!response.ok) {
 }
 
     pipelineUsers = data.users || [];
+    pipelineActivities = data.activities || [];
 
     renderMetrics(
       data.metrics || {},
