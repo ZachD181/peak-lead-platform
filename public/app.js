@@ -10,8 +10,7 @@ const resultAction = document.getElementById("result-action");
 
 const leadManager = document.getElementById("lead-manager");
 const leadManagerForm = document.getElementById("lead-manager-form");
-const closeLeadManagerButton =
-  document.getElementById("close-lead-manager");
+const closeLeadManagerButton = document.getElementById("close-lead-manager");
 
 const managerLeadId = document.getElementById("manager-lead-id");
 const managerName = document.getElementById("manager-name");
@@ -25,6 +24,27 @@ const managerAssignedUser = document.getElementById("manager-assigned-user");
 const managerFollowUp = document.getElementById("manager-follow-up");
 const managerNotes = document.getElementById("manager-notes");
 const leadActivityList = document.getElementById("lead-activity-list");
+const toggleActivityHistory = document.getElementById("toggle-activity-history");
+
+if (toggleActivityHistory && leadActivityList) {
+  leadActivityList.hidden = true;
+
+  toggleActivityHistory.addEventListener("click", () => {
+    const isExpanded =
+      toggleActivityHistory.getAttribute("aria-expanded") === "true";
+
+    toggleActivityHistory.setAttribute(
+      "aria-expanded",
+      String(!isExpanded)
+    );
+
+    leadActivityList.hidden = isExpanded;
+
+    toggleActivityHistory.textContent = isExpanded
+      ? "Activity History ▼"
+      : "Activity History ▲";
+  });
+}
 const leadManagerStatus = document.getElementById("lead-manager-status");
   const completeFollowUpButton = document.getElementById("complete-follow-up");
   let pipelineUsers = [];
