@@ -1293,6 +1293,14 @@ const previousLead = existingLeads.find(
   (lead) => String(lead.id) === String(leadId)
 );
 
+if (input.followUpCompleted === true) {
+  if (!previousLead?.nextFollowUp) {
+    return sendJson(res, 400, {
+      error: "There is no scheduled follow-up to complete.",
+    });
+  }
+}
+
   const updatedAt = new Date().toISOString();
 
   const lead = await updateLead(
@@ -1352,16 +1360,40 @@ if (previousLead) {
     changes.push("Lead notes updated.");
   }
 
-  const oldFollowUp = previousLead.nextFollowUp || null;
-  const newFollowUp = lead.nextFollowUp || null;
+ const oldFollowUp = previousLead.nextFollowUp || null;
+const newFollowUp = lead.nextFollowUp || null;
 
-  if (oldFollowUp !== newFollowUp) {
-    if (newFollowUp === null) {
-      changes.push("Follow-up completed or cleared.");
-    } else {
-      changes.push("Follow-up scheduled or rescheduled.");
-    }
+const formatFollowUp = (value) => {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? String(value)
+    : date.toLocaleString("en-US", {
+        dateStyle: "medium",
+        timeStyle: "short",
+        timeZone: "America/Denver",
+      });
+};
+
+const oldTime = oldFollowUp ? new Date(oldFollowUp).getTime() : null;
+const newTime = newFollowUp ? new Date(newFollowUp).getTime() : null;
+
+if (oldTime !== newTime) {
+  if (oldFollowUp && !newFollowUp) {
+    if (input.followUpCompleted === true) {
+  changes.push(
+    `Follow-up completed on ${formatFollowUp(updatedAt)}.`
+  );
+} else {
+  changes.push("Follow-up cleared.");
+}
+  } else if (!oldFollowUp && newFollowUp) {
+    changes.push(`Follow-up scheduled for ${formatFollowUp(newFollowUp)}.`);
+  } else if (oldFollowUp && newFollowUp) {
+    changes.push(
+      `Follow-up rescheduled from ${formatFollowUp(oldFollowUp)} to ${formatFollowUp(newFollowUp)}.`
+    );
   }
+}
 }
 
 

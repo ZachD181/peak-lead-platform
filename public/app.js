@@ -1286,6 +1286,11 @@ leadManagerStatus.textContent =
 });
     completeFollowUpButton?.addEventListener("click", async () => {
   const leadId = managerLeadId.value;
+  if (!managerFollowUp.value) {
+  leadManagerStatus.textContent =
+    "There is no scheduled follow-up to complete.";
+  return;
+}
 
   if (!leadId) {
     leadManagerStatus.textContent = "Unable to identify this lead.";
@@ -1303,8 +1308,9 @@ leadManagerStatus.textContent =
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          nextFollowUp: null,
-        }),
+  nextFollowUp: null,
+  followUpCompleted: true,
+}),
       }
     );
 
