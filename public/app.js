@@ -389,6 +389,7 @@ if (!response.ok) {
   data.leads || []
 );
 
+
 function renderFollowUps(leads) {
   const container = document.getElementById("follow-up-list");
 
@@ -406,6 +407,30 @@ function renderFollowUps(leads) {
     }))
     .filter(({ followUpDate }) => !Number.isNaN(followUpDate.getTime()))
     .sort((a, b) => a.followUpDate - b.followUpDate);
+    const overdueCount = followUps.filter(
+  ({ followUpDate }) => followUpDate < now
+).length;
+
+const todayCount = followUps.filter(({ followUpDate }) => {
+  const today = new Date(now);
+
+  return (
+    followUpDate.toDateString() === today.toDateString() &&
+    followUpDate >= now
+  );
+}).length;
+
+const reminderCount = overdueCount + todayCount;
+if (reminderCount > 0) {
+  const reminder = document.createElement("div");
+  reminder.className = "follow-up-reminder";
+
+  reminder.textContent =
+    `${reminderCount} follow-up${reminderCount === 1 ? "" : "s"} need your attention — ` +
+    `${overdueCount} overdue, ${todayCount} due today.`;
+
+  container.appendChild(reminder);
+}
 
   if (!followUps.length) {
     const empty = document.createElement("div");

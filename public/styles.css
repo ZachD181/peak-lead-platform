@@ -1985,3 +1985,17 @@ footer .brand {
   background: #151c22;
   color: #ffffff;
 }
+/* Dashboard Follow-Up Reminder */
+
+.follow-up-reminder {
+  background: rgba(212, 255, 50, 0.08);
+  border: 1px solid rgba(212, 255, 50, 0.35);
+  border-left: 4px solid #d4ff32;
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin-bottom: 18px;
+  color: #e8f0d0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.5;
+}
