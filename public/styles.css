@@ -1950,3 +1950,38 @@ footer .brand {
   outline-offset: 4px;
   border-radius: 4px;
 }
+/* Activity History Filter */
+
+.activity-filter-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0;
+  flex-wrap: wrap;
+}
+
+.activity-filter-container label {
+  color: #b8c4cc;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+#activity-filter {
+  background: #151c22;
+  color: #ffffff;
+  border: 1px solid #34404a;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+#activity-filter:focus {
+  outline: 2px solid #d4ff32;
+  outline-offset: 2px;
+}
+
+#activity-filter option {
+  background: #151c22;
+  color: #ffffff;
+}

@@ -24,6 +24,7 @@ const managerAssignedUser = document.getElementById("manager-assigned-user");
 const managerFollowUp = document.getElementById("manager-follow-up");
 const managerNotes = document.getElementById("manager-notes");
 const leadActivityList = document.getElementById("lead-activity-list");
+const activityFilter = document.getElementById("activity-filter");
 const toggleActivityHistory = document.getElementById("toggle-activity-history");
 
 if (toggleActivityHistory && leadActivityList) {
@@ -76,10 +77,32 @@ const adminCustomersLink =
   function renderLeadActivityHistory(leadId) {
   if (!leadActivityList) return;
 
-  const activities = pipelineActivities
-    .filter((activity) =>
-      String(activity.lead_id || activity.leadId) === String(leadId)
-    )
+  const selectedFilter = activityFilter?.value || "all";
+
+const activities = pipelineActivities
+  .filter((activity) =>
+    String(activity.lead_id || activity.leadId) === String(leadId)
+  )
+  .filter((activity) => {
+    if (selectedFilter === "all") return true;
+
+    const type = (activity.type || "").toLowerCase();
+    const detail = (activity.detail || "").toLowerCase();
+
+    if (selectedFilter === "stage") {
+      return type.includes("stage") || detail.includes("stage changed");
+    }
+
+    if (selectedFilter === "notes") {
+      return type.includes("notes") || detail.includes("notes updated");
+    }
+
+    if (selectedFilter === "followup") {
+      return type.includes("follow-up") || detail.includes("follow-up");
+    }
+
+    return true;
+  })
     .sort((a, b) =>
       new Date(b.created_at || b.createdAt) -
       new Date(a.created_at || a.createdAt)
@@ -112,6 +135,13 @@ const adminCustomersLink =
     leadActivityList.appendChild(item);
   });
 }
+activityFilter?.addEventListener("change", () => {
+  const leadId = managerLeadId.value;
+
+  if (leadId) {
+    renderLeadActivityHistory(leadId);
+  }
+});
 
   function openLeadManager(lead) {
   if (!leadManager || !lead) return;
