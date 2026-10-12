@@ -1396,13 +1396,32 @@ if (oldTime !== newTime) {
 }
 }
 
+let activityType = "Updated";
+
+if (changes.length === 1) {
+  const change = changes[0];
+
+  if (change.startsWith("Stage changed")) {
+    activityType = "Stage Changed";
+  } else if (change.startsWith("Lead notes updated")) {
+    activityType = "Notes Updated";
+  } else if (change.startsWith("Follow-up scheduled")) {
+    activityType = "Follow-Up Scheduled";
+  } else if (change.startsWith("Follow-up rescheduled")) {
+    activityType = "Follow-Up Rescheduled";
+  } else if (change.startsWith("Follow-up completed")) {
+    activityType = "Follow-Up Completed";
+  } else if (change.startsWith("Follow-up cleared")) {
+    activityType = "Follow-Up Cleared";
+  }
+}
 
   if (changes.length > 0) {
   await createActivity({
     id: crypto.randomUUID(),
     clientId: session.clientId,
     leadId: lead.id,
-    type: "Updated",
+    type: activityType,
     detail: changes.join(" "),
     createdAt: updatedAt,
   });
