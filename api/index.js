@@ -1982,6 +1982,13 @@ if (emailSendingEnabled) {
 
 
       const reminders = await getEligibleClientReminders();
+console.log("Follow-up reminder preview:", {
+  reminderGroups: reminders.length,
+  totalLeads: reminders.reduce(
+    (total, reminder) => total + reminder.leads.length,
+    0
+  ),
+});
 
       return sendJson(res, 200, {
         status: "preview",
