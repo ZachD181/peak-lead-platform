@@ -6,6 +6,7 @@ create table if not exists clients (
   slug text not null unique,
   industry text not null default '',
   capture_key text unique,
+  is_test_account BOOLEAN NOT NULL DEFAULT FALSE,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
