@@ -307,3 +307,30 @@ create index if not exists idx_lead_activities_client_id
 
 create index if not exists idx_lead_activities_created_at
     on lead_activities(created_at desc);
+    -- ==========================================
+-- AUTOMATIC FOLLOW-UP EMAIL REMINDERS
+-- ==========================================
+
+CREATE TABLE IF NOT EXISTS follow_up_reminder_deliveries (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
+    client_id UUID NOT NULL,
+    user_id UUID NOT NULL,
+
+    reminder_date DATE NOT NULL,
+
+    status TEXT NOT NULL DEFAULT 'pending'
+        CHECK (status IN ('pending', 'sending', 'sent', 'failed')),
+
+    attempt_count INTEGER NOT NULL DEFAULT 0,
+
+    provider_message_id TEXT,
+
+    last_error TEXT,
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    sent_at TIMESTAMPTZ,
+
+    UNIQUE (client_id, user_id, reminder_date)
+);

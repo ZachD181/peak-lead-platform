@@ -60,6 +60,129 @@ const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
   : null;
 
+  const {
+  getDueFollowUps,
+  groupRemindersByUser,
+  buildReminderEmail,
+  processReminderForUser,
+  previewReminderForUser,
+  getEligibleClientReminders,
+} = require("../lib/followUpReminders");
+
+
+const {
+  updateReminderDeliveryStatus,
+} = require("../lib/repository");
+
+async function sendFollowUpReminder(email) {
+  if (!resend) {
+    throw new Error("Resend is not configured.");
+  }
+
+  if (!email?.to || !email?.subject || !email?.html) {
+    throw new Error("Missing reminder email information.");
+  }
+
+
+  const result = await resend.emails.send({
+    from: "Peak Lead Platform <noreply@peakleadplatform.com>",
+    to: email.to,
+    subject: email.subject,
+    html: email.html,
+  });
+
+  if (result.error) {
+    throw new Error(
+      result.error.message || "Resend could not accept the reminder."
+    );
+  }
+
+  if (!result.data?.id) {
+    throw new Error("Resend did not return a message ID.");
+  }
+
+  return result.data.id;
+}
+
+async function sendTrackedFollowUpReminder(preparedReminder) {
+  if (
+    preparedReminder?.status !== "ready" ||
+    !preparedReminder.deliveryId
+  ) {
+    throw new Error("Reminder is not ready to send.");
+  }
+
+  // If sending fails or its outcome is uncertain,
+  // leave the record as "sending" to prevent automatic retries.
+  const messageId = await sendFollowUpReminder(
+    preparedReminder.email
+  );
+
+  const delivery = await updateReminderDeliveryStatus(
+    preparedReminder.deliveryId,
+    "sent",
+    messageId
+  );
+
+  if (!delivery) {
+    throw new Error(
+      "Email accepted by Resend, but delivery status was not updated."
+    );
+  }
+
+  return {
+    status: "sent",
+    messageId,
+  };
+}
+
+async function runFollowUpReminderJob() {
+  if (process.env.ENABLE_FOLLOW_UP_EMAILS !== "true") 
+    {
+    return {
+      status: "disabled",
+      sent: 0,
+    };
+  }
+  
+
+  const reminders = await getEligibleClientReminders();
+
+  const reminderDate = new Date().toISOString().slice(0, 10);
+  let sent = 0;
+  let skipped = 0;
+  let failed = 0;
+
+  for (const reminder of reminders) {
+    try {
+      const prepared = await processReminderForUser(
+        reminder.clientId,
+        reminder.user,
+        reminder.leads,
+        reminderDate
+      );
+
+      if (prepared.status !== "ready") {
+        skipped++;
+        continue;
+      }
+
+      await sendTrackedFollowUpReminder(prepared);
+      sent++;
+    } catch (error) {
+      failed++;
+      console.error("Follow-up reminder processing failed:", error.message);
+    }
+  }
+
+  return {
+    status: "completed",
+    sent,
+    skipped,
+    failed,
+  };
+}
+
 function sendJson(res, status, payload) {
   res.writeHead(status, {
     "Content-Type": "application/json; charset=utf-8",
@@ -1820,7 +1943,17 @@ async function handleAdminGetClientDetails(
   });
 }
 
+function isAuthorizedReminderJob(req) {
+  const secret = process.env.CRON_SECRET;
 
+  if (!secret) {
+    return false;
+  }
+
+  const authorization = req.headers.authorization || "";
+
+  return authorization === `Bearer ${secret}`;
+}
 
 module.exports = async function handler(req, res) {
   try {
@@ -1828,6 +1961,37 @@ module.exports = async function handler(req, res) {
       req.url,
       "http://localhost"
     );
+        if (
+      req.method === "GET" &&
+      url.pathname === "/api/cron/follow-up-reminders"
+    ) {
+      if (!isAuthorizedReminderJob(req)) {
+        return sendJson(res, 401, {
+          error: "Unauthorized",
+        });
+      }
+
+
+      const emailSendingEnabled =
+  process.env.ENABLE_FOLLOW_UP_EMAILS === "true";
+
+if (emailSendingEnabled) {
+  const result = await runFollowUpReminderJob();
+  return sendJson(res, 200, result);
+}
+
+
+      const reminders = await getEligibleClientReminders();
+
+      return sendJson(res, 200, {
+        status: "preview",
+        reminderGroups: reminders.length,
+        totalLeads: reminders.reduce(
+          (total, reminder) => total + reminder.leads.length,
+          0
+        ),
+      });
+    }
  async function handleAdminGetClient(
   res,
   clientId

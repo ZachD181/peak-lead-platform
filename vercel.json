@@ -5,5 +5,11 @@
       "source": "/api/:path*",
       "destination": "/api/index.js"
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/follow-up-reminders",
+      "schedule": "0 14 * * *"
+    }
   ]
 }
