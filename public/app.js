@@ -329,6 +329,45 @@ async function showAdminControls() {
   }
 }
 let pipelineActivities = [];
+
+function updateOnboardingChecklist(leads) {
+  const checklist = document.getElementById(
+    "onboarding-checklist"
+  );
+
+  if (!checklist) return;
+
+  const hasLead = leads.length > 0;
+
+  const hasFollowUp = leads.some(
+    (lead) => Boolean(lead.nextFollowUp)
+  );
+
+  const completed = 1 +
+    Number(hasLead) +
+    Number(hasFollowUp);
+
+  document.getElementById(
+    "onboarding-progress"
+  ).textContent = `${completed} of 3 steps complete`;
+
+  document.getElementById(
+    "onboarding-account"
+  ).textContent = "✓ Create your account";
+
+  document.getElementById(
+    "onboarding-lead"
+  ).textContent =
+    `${hasLead ? "✓" : "○"} Add your first lead`;
+
+  document.getElementById(
+    "onboarding-followup"
+  ).textContent =
+    `${hasFollowUp ? "✓" : "○"} Schedule your first follow-up`;
+
+  checklist.hidden = completed === 3;
+}
+
 async function loadDashboard() {
   try {
     const authResponse =
@@ -380,6 +419,8 @@ if (!response.ok) {
       data.metrics || {},
       data.leads || []
     );
+
+    updateOnboardingChecklist(data.leads || []);
 
     renderPipeline(
       data.leads || []
