@@ -48,11 +48,34 @@ const {
 
 const { calculateLeadScore } = require("../lib/scoring");
 
+const {
+  isValidStripeSubscription,
+  hasValidTrial,
+  isTemporaryStripeFailure,
+  matchesExistingBillingIdentity,
+} = require("../lib/billingValidation");
+
+const {
+  createStripeWebhookProcessor,
+} = require("../lib/stripeWebhookProcessor");
+
 const Stripe = require("stripe");
 
 const stripe = new Stripe(
   process.env.STRIPE_SECRET_KEY
 );
+
+const isStripeLiveMode =
+  process.env.STRIPE_SECRET_KEY?.startsWith(
+    "sk_live_"
+  ) === true;
+
+  const stripeWebhookProcessor = createStripeWebhookProcessor({
+  stripe,
+  getClientById,
+  updateClientBilling,
+  isStripeLiveMode,
+});
 
 const { Resend } = require("resend");
 
@@ -627,12 +650,19 @@ async function handleCreateCheckoutSession(
   const origin =
     `${req.headers["x-forwarded-proto"] || "http"}://${req.headers.host}`;
 
+    const existingStripeCustomerId =
+  client.billing_customer_id ??
+  client.billingCustomerId;
+
+const checkoutCustomer = existingStripeCustomerId
+  ? { customer: existingStripeCustomerId }
+  : { customer_email: user.email };
+
   const checkoutSession =
     await stripe.checkout.sessions.create({
-      mode: "subscription",
+     mode: "subscription",
 
-      customer_email: user.email,
-
+...checkoutCustomer,
       line_items: [
         {
           price:
@@ -798,125 +828,32 @@ async function handleStripeWebhook(req, res) {
     });
   }
 
-  try {
-    if (
-      event.type ===
-      "checkout.session.completed"
-    ) {
-      const checkoutSession =
-        event.data.object;
-
-      const clientId =
-        checkoutSession.metadata?.clientId;
-
-      if (clientId) {
-        await updateClientBilling(
-          clientId,
-          {
-            subscriptionStatus:
-              "active",
-
-            billingCustomerId:
-              typeof checkoutSession.customer ===
-              "string"
-                ? checkoutSession.customer
-                : checkoutSession.customer?.id,
-
-            billingSubscriptionId:
-              typeof checkoutSession.subscription ===
-              "string"
-                ? checkoutSession.subscription
-                : checkoutSession.subscription?.id,
-          }
-        );
-
-        
-       
-        
-      }
+try {
+    if (event.type === "checkout.session.completed") {
+      await stripeWebhookProcessor.processCheckout(
+        event.data.object
+      );
     }
 
-    if (
-      event.type ===
-      "customer.subscription.updated"
-    ) {
-      const subscription =
-        event.data.object;
 
-      const clientId =
-        subscription.metadata?.clientId;
-
-      if (clientId) {
-        const allowedStatus =
-          subscription.status === "active" ||
-          subscription.status === "trialing"
-            ? "active"
-            : subscription.status;
-
-        await updateClientBilling(
-          clientId,
-          {
-            subscriptionStatus:
-              allowedStatus,
-
-            billingCustomerId:
-              typeof subscription.customer ===
-              "string"
-                ? subscription.customer
-                : subscription.customer?.id,
-
-            billingSubscriptionId:
-              subscription.id,
-              cancelAtPeriodEnd:
-  subscription.cancel_at_period_end ||
-  Boolean(subscription.cancel_at),
- 
-
-currentPeriodEnd:
-  subscription.current_period_end
-    ? new Date(
-        subscription.current_period_end * 1000
-      ).toISOString()
-    : null,
-          }
-        );
-      }
+    if (event.type === "customer.subscription.updated") {
+      await stripeWebhookProcessor.processSubscriptionUpdate(
+        event.data.object
+      );
     }
 
-    if (
-      event.type ===
-      "customer.subscription.deleted"
-    ) {
-      const subscription =
-        event.data.object;
 
-      const clientId =
-        subscription.metadata?.clientId;
-
-      if (clientId) {
-        await updateClientBilling(
-          clientId,
-          {
-            subscriptionStatus:
-              "canceled",
-
-            billingCustomerId:
-              typeof subscription.customer ===
-              "string"
-                ? subscription.customer
-                : subscription.customer?.id,
-
-            billingSubscriptionId:
-              subscription.id,
-          }
-        );
-      }
+    if (event.type === "customer.subscription.deleted") {
+      await stripeWebhookProcessor.processCancellation(
+        event.data.object
+      );
     }
 
     return sendJson(res, 200, {
       received: true,
     });
   } catch (error) {
+
     console.error(
       "Stripe webhook processing failed:",
       error
@@ -1806,6 +1743,7 @@ async function requireSession(req, res) {
 
   return session;
 }
+
 async function requireActiveSubscription(req, res) {
   const session = await requireSession(req, res);
 
@@ -1818,15 +1756,12 @@ async function requireActiveSubscription(req, res) {
     return session;
   }
 
-  const client = await getClientById(
-    session.clientId
-  );
+  const client = await getClientById(session.clientId);
 
   if (!client) {
     sendJson(res, 404, {
       error: "Client account not found.",
     });
-
     return null;
   }
 
@@ -1840,18 +1775,51 @@ async function requireActiveSubscription(req, res) {
     client.trialEndsAt ||
     null;
 
-  // Paid customer
+  // Verify paid subscriptions against Stripe.
   if (subscriptionStatus === "active") {
-    return session;
+    const billingSubscriptionId =
+      client.billing_subscription_id ||
+      client.billingSubscriptionId;
+
+    if (billingSubscriptionId) {
+      try {
+        const subscription =
+          await stripe.subscriptions.retrieve(
+            billingSubscriptionId
+          );
+
+        if (
+          isValidStripeSubscription(
+            subscription,
+            client.id,
+            isStripeLiveMode
+          )
+        ) {
+          return session;
+        }
+      } catch (error) {
+        console.error(
+          "Subscription verification failed:",
+          error.message
+        );
+
+       const temporaryStripeFailure =
+  isTemporaryStripeFailure(error);
+
+        if (temporaryStripeFailure) {
+          sendJson(res, 503, {
+            error:
+              "Billing verification is temporarily unavailable. Please try again shortly.",
+            code: "BILLING_SERVICE_UNAVAILABLE",
+          });
+          return null;
+        }
+      }
+    }
   }
 
-  // Valid trial
-  if (
-    subscriptionStatus === "trialing" &&
-    trialEndsAt &&
-    new Date(trialEndsAt).getTime() >
-      Date.now()
-  ) {
+  // Allow customers with valid trials.
+  if (hasValidTrial(subscriptionStatus, trialEndsAt)) {
     return session;
   }
 
@@ -1862,6 +1830,8 @@ async function requireActiveSubscription(req, res) {
 
   return null;
 }
+
+
 async function handleLogout(req, res) {
   const sessionId = getCookie(
     req,

@@ -412,6 +412,14 @@ if (!response.ok) {
   );
 }
 
+const dashboardError =
+  document.getElementById("dashboard-error");
+
+if (dashboardError) {
+  dashboardError.textContent = "";
+  dashboardError.hidden = true;
+}
+
     pipelineUsers = data.users || [];
     pipelineActivities = data.activities || [];
 
@@ -568,13 +576,25 @@ row.className =
       data.leads || []
     );
 
-  } catch (error) {
-    console.error(
-      "Dashboard error:",
-      error
-    );
+ } catch (error) {
+  console.error(
+    "Dashboard error:",
+    error
+  );
+
+  const dashboardError =
+    document.getElementById("dashboard-error");
+
+  if (dashboardError) {
+    dashboardError.textContent =
+      error.message ||
+      "Unable to load the dashboard. Please try again.";
+
+    dashboardError.hidden = false;
   }
 }
+  }
+
 
 function renderMetrics(metrics, leads) {
   const cards =
