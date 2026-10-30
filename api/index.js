@@ -29,11 +29,18 @@ getUsersByClient,
 getScoringRulesByClient,
 updateClientStatus,
 updateClientBilling,
+finalizeCheckoutBilling,
 updateUserPassword,
 updateClientCompany,
 updateUserProfile,
 getCampaignsByClient,
 createCampaign,
+claimCheckoutReservation,
+releaseCheckoutReservation,
+saveCheckoutSessionId,
+getCheckoutReservation,
+deleteCheckoutReservation,
+completeCheckoutReservation,
 
 } = require("../lib/repository");
 
@@ -74,6 +81,9 @@ const isStripeLiveMode =
   stripe,
   getClientById,
   updateClientBilling,
+  finalizeCheckoutBilling,
+  getCheckoutReservation,
+  completeCheckoutReservation,
   isStripeLiveMode,
 });
 
@@ -393,6 +403,7 @@ if (!client) {
   });
 }
 
+
 const scoringRules =
   await getScoringRulesByClient(
     session.clientId
@@ -637,7 +648,174 @@ async function handleCreateCheckoutSession(
       error: "Client account not found.",
     });
   }
+const trialUsed =
+  client.trial_used === true ||
+  client.trialUsed === true;
 
+const hasBillingHistory = Boolean(
+  client.billing_customer_id ||
+  client.billingCustomerId ||
+  client.billing_subscription_id ||
+  client.billingSubscriptionId
+);
+
+const eligibleForTrial =
+  !trialUsed && !hasBillingHistory;
+  const existingSubscriptionId =
+  client.billing_subscription_id ||
+  client.billingSubscriptionId;
+
+let existingSubscription = null;
+
+if (existingSubscriptionId) {
+  existingSubscription =
+    await stripe.subscriptions.retrieve(
+      existingSubscriptionId
+    );
+
+  if (
+    isValidStripeSubscription(
+      existingSubscription,
+      client.id,
+      isStripeLiveMode
+    )
+  ) {
+    return sendJson(res, 409, {
+      error:
+        "You already have an active subscription or free trial. Manage your subscription from the billing page.",
+    });
+  }
+}
+
+  const reservation =
+    await getCheckoutReservation(client.id);
+
+ if (
+  reservation &&
+  reservation.status === "pending" &&
+  reservation.checkout_session_id
+) {
+  const existingCheckoutSession =
+    await stripe.checkout.sessions.retrieve(
+      reservation.checkout_session_id
+    );
+
+  const sessionClientId =
+    existingCheckoutSession.metadata?.clientId;
+
+  const sessionModeMatches =
+    existingCheckoutSession.livemode ===
+    isStripeLiveMode;
+
+  if (
+    existingCheckoutSession.id !==
+      reservation.checkout_session_id ||
+    sessionClientId !== String(client.id) ||
+    !sessionModeMatches ||
+    existingCheckoutSession.mode !== "subscription"
+  ) {
+    console.error(
+      "Existing Checkout session failed validation:",
+      existingCheckoutSession.id
+    );
+
+    return sendJson(res, 409, {
+      error:
+        "The existing Checkout session could not be verified. Please contact support.",
+    });
+  }
+
+  if (existingCheckoutSession.status === "open") {
+    if (!existingCheckoutSession.url) {
+      return sendJson(res, 409, {
+        error:
+          "The existing Checkout URL is unavailable. Please contact support.",
+      });
+    }
+
+    return sendJson(res, 200, {
+      url: existingCheckoutSession.url,
+    });
+  }
+
+  if (existingCheckoutSession.status === "expired") {
+    const reservationDeleted =
+      await deleteCheckoutReservation(
+        client.id,
+        reservation.id,
+        reservation.checkout_session_id
+      );
+
+    if (!reservationDeleted) {
+      return sendJson(res, 409, {
+        error:
+          "The expired Checkout reservation could not be cleared. Please try again later.",
+      });
+    }
+
+    return sendJson(res, 409, {
+      error:
+        "Your previous Checkout session expired. Please click Subscribe again to start a new session.",
+    });
+  }
+
+  if (existingCheckoutSession.status === "complete") {
+    return sendJson(res, 409, {
+      error:
+        "Your Checkout was completed. We are verifying your subscription. Please refresh your billing page shortly.",
+    });
+  }
+
+  return sendJson(res, 409, {
+    error:
+      "The existing Checkout session has an unexpected status. Please contact support.",
+  });
+}
+if (
+  reservation &&
+  reservation.status === "pending" &&
+  !reservation.checkout_session_id
+) {
+  const reservationAgeMs =
+    Date.now() -
+    new Date(reservation.created_at).getTime();
+
+  console.warn(
+    "Checkout reservation has no saved Stripe session:",
+    {
+      reservationId: reservation.id,
+      ageSeconds: Math.floor(reservationAgeMs / 1000),
+    }
+  );
+
+  return sendJson(res, 409, {
+    error:
+      reservationAgeMs < 120000
+        ? "Your Checkout request may still be processing. Please wait a moment before trying again."
+        : "Your previous Checkout request was interrupted. Please contact support so we can safely verify it.",
+  });
+}
+
+
+    if (reservation) {
+  const canReuseCompletedReservation =
+    reservation.status === "completed" &&
+    existingSubscriptionId &&
+    existingSubscription?.status === "canceled" &&
+    existingSubscription.livemode === isStripeLiveMode &&
+    existingSubscription.metadata?.clientId === String(client.id) &&
+    existingSubscription.customer ===
+      (client.billing_customer_id || client.billingCustomerId);
+
+  if (!canReuseCompletedReservation) {
+    return sendJson(res, 409, {
+      error:
+        reservation.status === "completed"
+          ? "Checkout has already been completed. Please refresh your billing page."
+          : "A Checkout attempt already exists. Please wait while we verify its status.",
+    });
+  }
+}
   const user =
     await getUserById(session.userId);
 
@@ -658,7 +836,21 @@ const checkoutCustomer = existingStripeCustomerId
   ? { customer: existingStripeCustomerId }
   : { customer_email: user.email };
 
-  const checkoutSession =
+    const reservationClaimed =
+    await claimCheckoutReservation(client.id);
+
+  if (!reservationClaimed) {
+    return sendJson(res, 409, {
+      error:
+        "A Checkout attempt is already in progress. Please refresh your billing page and try again shortly.",
+    });
+  }
+
+    let checkoutSession;
+
+  try {
+
+   checkoutSession =
     await stripe.checkout.sessions.create({
      mode: "subscription",
 
@@ -682,12 +874,84 @@ const checkoutCustomer = existingStripeCustomerId
         userId: user.id,
       },
 
-      subscription_data: {
-        metadata: {
-          clientId: client.id,
-        },
-      },
+      payment_method_collection: "always",
+
+subscription_data: {
+  ...(eligibleForTrial
+    ? { trial_period_days: 14 }
+    : {}),
+  metadata: {
+    clientId: client.id,
+  },
+},
+       }, {
+  idempotencyKey:
+    `peak-checkout-${reservationClaimed.id}`,
+});
+
+      } catch (error) {
+  const uncertainStripeResult =
+    error.type === "StripeConnectionError" ||
+    error.type === "StripeAPIConnectionError" ||
+    error.type === "StripeAPIError" ||
+    error.type === "StripeRateLimitError" ||
+    error.code === "ETIMEDOUT" ||
+    error.code === "ECONNRESET" ||
+    (typeof error.statusCode === "number" &&
+      error.statusCode >= 500);
+
+  console.error(
+    "Stripe Checkout creation failed:",
+    {
+      reservationId: reservationClaimed.id,
+      errorType: error.type,
+      errorCode: error.code,
+      statusCode: error.statusCode,
+      uncertainStripeResult,
+      message: error.message,
+    }
+  );
+
+  return sendJson(res, 503, {
+    error: uncertainStripeResult
+      ? "Stripe may have created your Checkout session. Please contact support before trying again."
+      : "Stripe could not create your Checkout session. Please contact support if the problem continues.",
+  });
+}
+
+  let sessionSaved = false;
+
+try {
+  sessionSaved = await saveCheckoutSessionId(
+  client.id,
+  reservationClaimed.id,
+  checkoutSession.id,
+  checkoutSession.expires_at
+);
+} catch (error) {
+  console.error(
+    "Failed to save Stripe Checkout session:",
+    error
+  );
+}
+
+  if (!sessionSaved) {
+    try {
+      await stripe.checkout.sessions.expire(
+        checkoutSession.id
+      );
+    } catch (error) {
+      console.error(
+        "Failed to expire untracked Checkout session:",
+        error
+      );
+    }
+
+    return sendJson(res, 503, {
+      error:
+        "Checkout could not be finalized. Please contact support before trying again.",
     });
+  }
 
   return sendJson(res, 200, {
     url: checkoutSession.url,
@@ -1102,22 +1366,15 @@ async function handleRegister(req, res) {
   const now =
     new Date().toISOString();
 
-    const trialEndsAt = new Date(
-  Date.now() + 30 * 24 * 60 * 60 * 1000
-).toISOString();
-
-  const client =
-    await createClient({
-      id: crypto.randomUUID(),
-
-      name: companyName,
-      slug,
-      industry,
-
-     status: "active",
-    plan: "standard",
-    subscriptionStatus: "trialing",
-    trialEndsAt: trialEndsAt,
+  const client = await createClient({
+  id: crypto.randomUUID(),
+  name: companyName,
+  slug,
+  industry,
+  status: "active",
+  plan: "standard",
+  subscriptionStatus: "inactive",
+  trialEndsAt: null,
 
       createdAt: now,
       updatedAt: now,
@@ -1788,15 +2045,16 @@ async function requireActiveSubscription(req, res) {
             billingSubscriptionId
           );
 
-        if (
-          isValidStripeSubscription(
-            subscription,
-            client.id,
-            isStripeLiveMode
-          )
-        ) {
-          return session;
-        }
+       if (
+  subscription.status === "active" &&
+  isValidStripeSubscription(
+    subscription,
+    client.id,
+    isStripeLiveMode
+  )
+) {
+  return session;
+}
       } catch (error) {
         console.error(
           "Subscription verification failed:",

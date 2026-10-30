@@ -105,10 +105,10 @@
 
         status.textContent = "Login successful.";
 
-        if (result.user.role === "peak_admin") {
+      if (result.user.role === "peak_admin") {
   window.location.href = "/admin.html";
 } else {
-  window.location.href = "/";
+  window.location.href = "/billing.html";
 }
       } catch (error) {
         status.textContent = error.message;

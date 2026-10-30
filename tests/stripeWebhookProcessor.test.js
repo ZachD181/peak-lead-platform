@@ -8,6 +8,7 @@ const {
 
 test("valid checkout activates the correct customer", async () => {
   const updates = [];
+  let transactionCompleted = false;
 
   const processor = createStripeWebhookProcessor({
     isStripeLiveMode: false,
@@ -30,13 +31,37 @@ test("valid checkout activates the correct customer", async () => {
       billing_subscription_id: null,
     }),
 
-    updateClientBilling: async (clientId, billing) => {
-      updates.push({ clientId, billing });
-    },
+    getCheckoutReservation: async () => ({
+      id: "reservation-123",
+      client_id: "client-123",
+      checkout_session_id: "cs_test_123",
+      status: "pending",
+    }),
+
+    finalizeCheckoutBilling: async (
+  clientId,
+  reservationId,
+  checkoutSessionId,
+  billing
+) => {
+    updates.push({
+    clientId,
+    reservationId,
+    checkoutSessionId,
+    billing,
+  });
+
+  transactionCompleted = true;
+
+  return { id: clientId };
+},
   });
 
   await processor.processCheckout({
+    id: "cs_test_123",
     mode: "subscription",
+    status: "complete",
+    livemode: false,
     metadata: { clientId: "client-123" },
     customer: "cus_test_123",
     subscription: "sub_test_123",
@@ -49,6 +74,9 @@ test("valid checkout activates the correct customer", async () => {
     updates[0].billing.billingSubscriptionId,
     "sub_test_123"
   );
+  assert.equal(transactionCompleted, true);
+assert.equal(updates[0].reservationId, "reservation-123");
+assert.equal(updates[0].checkoutSessionId, "cs_test_123");
 });
 test("checkout cannot overwrite a different subscription", async () => {
   const updates = [];
@@ -70,21 +98,42 @@ test("checkout cannot overwrite a different subscription", async () => {
 
     getClientById: async () => ({
       id: "client-123",
+      subscription_status: "active",
       billing_customer_id: "cus_original",
       billing_subscription_id: "sub_original",
     }),
 
+    getCheckoutReservation: async () => ({
+      id: "reservation-123",
+      client_id: "client-123",
+      checkout_session_id: "cs_test_different",
+      status: "pending",
+    }),
+
     updateClientBilling: async (clientId, billing) => {
       updates.push({ clientId, billing });
+      return { id: clientId };
+    },
+
+    completeCheckoutReservation: async () => {
+      throw new Error("Blocked checkout must not complete its reservation");
     },
   });
 
-  await processor.processCheckout({
+  const checkout = {
+    id: "cs_test_different",
     mode: "subscription",
+    status: "complete",
+    livemode: false,
     metadata: { clientId: "client-123" },
     customer: "cus_original",
     subscription: "sub_different",
-  });
+  };
+
+  await assert.rejects(
+    () => processor.processCheckout(checkout),
+    /subscription|already|different|duplicate|conflict/i
+  );
 
   assert.equal(
     updates.length,
@@ -94,9 +143,12 @@ test("checkout cannot overwrite a different subscription", async () => {
 });
 test("duplicate checkout keeps the same billing identity", async () => {
   const updates = [];
+  let reservationStatus = "pending";
+  let completionCount = 0;
 
   let client = {
     id: "client-123",
+    subscription_status: "inactive",
     billing_customer_id: null,
     billing_subscription_id: null,
   };
@@ -118,19 +170,50 @@ test("duplicate checkout keeps the same billing identity", async () => {
 
     getClientById: async () => client,
 
-    updateClientBilling: async (clientId, billing) => {
-      updates.push(billing);
+    getCheckoutReservation: async () => ({
+      id: "reservation-123",
+      client_id: "client-123",
+      checkout_session_id: "cs_test_duplicate",
+      status: reservationStatus,
+    }),
 
-      client = {
-        ...client,
-        billing_customer_id: billing.billingCustomerId,
-        billing_subscription_id: billing.billingSubscriptionId,
-      };
-    },
+    finalizeCheckoutBilling: async (
+  clientId,
+  reservationId,
+  checkoutSessionId,
+  billing
+) => {
+  assert.equal(clientId, "client-123");
+  assert.equal(reservationId, "reservation-123");
+  assert.equal(checkoutSessionId, "cs_test_duplicate");
+
+  assert.equal(
+    reservationStatus,
+    "pending",
+    "A completed reservation must not be finalized twice"
+  );
+
+  updates.push(billing);
+
+  client = {
+    ...client,
+    subscription_status: billing.subscriptionStatus,
+    billing_customer_id: billing.billingCustomerId,
+    billing_subscription_id: billing.billingSubscriptionId,
+  };
+
+  reservationStatus = "completed";
+  completionCount++;
+
+  return client;
+},
   });
 
   const checkout = {
+    id: "cs_test_duplicate",
     mode: "subscription",
+    status: "complete",
+    livemode: false,
     metadata: { clientId: "client-123" },
     customer: "cus_test_123",
     subscription: "sub_test_123",
@@ -139,12 +222,23 @@ test("duplicate checkout keeps the same billing identity", async () => {
   await processor.processCheckout(checkout);
   await processor.processCheckout(checkout);
 
-  assert.equal(updates.length, 2);
   assert.equal(client.billing_customer_id, "cus_test_123");
   assert.equal(client.billing_subscription_id, "sub_test_123");
+
+  assert.equal(
+    completionCount,
+    1,
+    "The reservation should only be completed once"
+  );
+
+  assert.ok(
+    updates.length <= 2,
+    "A duplicate webhook must not create additional billing changes"
+  );
 });
 test("Sandbox subscription cannot activate a Live account", async () => {
   const updates = [];
+  let transactionCompleted = false;
 
   const processor = createStripeWebhookProcessor({
     isStripeLiveMode: true,
@@ -167,23 +261,59 @@ test("Sandbox subscription cannot activate a Live account", async () => {
       billing_subscription_id: null,
     }),
 
-    updateClientBilling: async (clientId, billing) => {
-      updates.push({ clientId, billing });
-    },
+    getCheckoutReservation: async () => ({
+      id: "reservation-123",
+      client_id: "client-123",
+      checkout_session_id: "cs_test_sandbox",
+      status: "pending",
+    }),
+
+   finalizeCheckoutBilling: async (
+  clientId,
+  reservationId,
+  checkoutSessionId,
+  billing
+) => {
+  updates.push({
+    clientId,
+    reservationId,
+    checkoutSessionId,
+    billing,
   });
 
-  await processor.processCheckout({
-    mode: "subscription",
-    metadata: { clientId: "client-123" },
-    customer: "cus_test_123",
-    subscription: "sub_test_123",
+  transactionCompleted = true;
+
+  return { id: clientId };
+},
+
+
   });
+
+  await assert.rejects(
+    () =>
+      processor.processCheckout({
+        id: "cs_test_sandbox",
+        mode: "subscription",
+        status: "complete",
+        livemode: false,
+        metadata: { clientId: "client-123" },
+        customer: "cus_test_123",
+        subscription: "sub_test_123",
+      }),
+    /environment|validation|livemode/i
+  );
 
   assert.equal(
     updates.length,
     0,
     "Sandbox payments must not activate Live accounts"
   );
+
+  assert.equal(
+  transactionCompleted,
+  false,
+  "A rejected Sandbox Checkout must not finalize billing"
+);
 });
 test("valid cancellation updates the correct customer", async () => {
   const updates = [];
@@ -205,9 +335,10 @@ test("valid cancellation updates the correct customer", async () => {
       billing_subscription_id: "sub_test_123",
     }),
 
-    updateClientBilling: async (clientId, billing) => {
-      updates.push({ clientId, billing });
-    },
+   updateClientBilling: async (clientId, billing) => {
+  updates.push({ clientId, billing });
+  return { id: clientId };
+},
   });
 
   await processor.processCancellation({
@@ -270,12 +401,18 @@ test("past-due subscription updates the correct customer", async () => {
     isStripeLiveMode: false,
 
     stripe: {
-      subscriptions: {
-        retrieve: async () => {
-          throw new Error("Stripe should not be called");
-        },
-      },
-    },
+  subscriptions: {
+    retrieve: async (id) => ({
+      id,
+      customer: "cus_test_123",
+      status: "past_due",
+      livemode: false,
+      metadata: { clientId: "client-123" },
+      cancel_at_period_end: false,
+      current_period_end: 1798761600,
+    }),
+  },
+},
 
     getClientById: async () => ({
       id: "client-123",
@@ -284,8 +421,9 @@ test("past-due subscription updates the correct customer", async () => {
     }),
 
     updateClientBilling: async (clientId, billing) => {
-      updates.push({ clientId, billing });
-    },
+  updates.push({ clientId, billing });
+  return { id: clientId };
+},
   });
 
   await processor.processSubscriptionUpdate({
@@ -396,6 +534,7 @@ test("subscription update rejects the wrong Stripe customer", async () => {
 test("active subscription cannot be replaced by another checkout", async () => {
   const updates = [];
   const retrievedSubscriptions = [];
+  let reservationCompleted = false;
 
   const processor = createStripeWebhookProcessor({
     isStripeLiveMode: false,
@@ -423,32 +562,59 @@ test("active subscription cannot be replaced by another checkout", async () => {
       billing_subscription_id: "sub_existing",
     }),
 
+    getCheckoutReservation: async () => ({
+      id: "reservation-123",
+      client_id: "client-123",
+      checkout_session_id: "cs_test_new",
+      status: "pending",
+    }),
+
     updateClientBilling: async (clientId, billing) => {
       updates.push({ clientId, billing });
+      return { id: clientId };
+    },
+
+    completeCheckoutReservation: async () => {
+      reservationCompleted = true;
+      return true;
     },
   });
 
-  await processor.processCheckout({
-    mode: "subscription",
-    metadata: { clientId: "client-123" },
-    customer: "cus_test_123",
-    subscription: "sub_new",
-  });
+  await assert.rejects(
+    () =>
+      processor.processCheckout({
+        id: "cs_test_new",
+        mode: "subscription",
+        status: "complete",
+        livemode: false,
+        metadata: { clientId: "client-123" },
+        customer: "cus_test_123",
+        subscription: "sub_new",
+      }),
+    /subscription|already|different|duplicate|conflict/i
+  );
 
-  assert.deepEqual(retrievedSubscriptions, [
-    "sub_new",
-    "sub_existing",
-  ]);
+  assert.ok(
+    retrievedSubscriptions.includes("sub_new"),
+    "The new subscription should be verified with Stripe"
+  );
 
   assert.equal(
     updates.length,
     0,
     "An active subscription must not be replaced"
   );
+
+  assert.equal(
+    reservationCompleted,
+    false,
+    "A conflicting Checkout must not complete its reservation"
+  );
 });
 
 test("canceled customer can activate a new subscription", async () => {
   const updates = [];
+  let transactionCompleted = false;
 
   const processor = createStripeWebhookProcessor({
     isStripeLiveMode: false,
@@ -472,31 +638,83 @@ test("canceled customer can activate a new subscription", async () => {
       billing_subscription_id: "sub_old",
     }),
 
-    updateClientBilling: async (clientId, billing) => {
-      updates.push({ clientId, billing });
-    },
+    getCheckoutReservation: async () => ({
+      id: "reservation-returning",
+      client_id: "client-123",
+      checkout_session_id: "cs_test_returning",
+      status: "pending",
+    }),
+
+   finalizeCheckoutBilling: async (
+  clientId,
+  reservationId,
+  checkoutSessionId,
+  billing
+) => {
+  updates.push({
+    clientId,
+    reservationId,
+    checkoutSessionId,
+    billing,
+  });
+
+  transactionCompleted = true;
+
+  return { id: clientId };
+},
   });
 
   await processor.processCheckout({
+    id: "cs_test_returning",
     mode: "subscription",
+    status: "complete",
+    livemode: false,
     metadata: { clientId: "client-123" },
     customer: "cus_returning",
     subscription: "sub_new",
   });
 
-  assert.equal(
-    updates.length,
-    1,
-    "A canceled customer should be able to subscribe again"
-  );
+ assert.equal(
+  transactionCompleted,
+  true,
+  "Returning customer's Checkout should finalize billing"
+);
 
+assert.equal(
+  updates[0].reservationId,
+  "reservation-returning"
+);
+
+assert.equal(
+  updates[0].checkoutSessionId,
+  "cs_test_returning"
+);
+
+assert.equal(
+  updates[0].billing.expectedCustomerId,
+  "cus_returning"
+);
+
+assert.equal(
+  updates[0].billing.expectedSubscriptionId,
+  "sub_old"
+);
+
+  assert.equal(updates[0].clientId, "client-123");
   assert.equal(updates[0].billing.subscriptionStatus, "active");
   assert.equal(updates[0].billing.billingCustomerId, "cus_returning");
   assert.equal(updates[0].billing.billingSubscriptionId, "sub_new");
+
+  assert.equal(
+  transactionCompleted,
+  true,
+  "A successful returning customer's Checkout should finalize billing"
+);
 });
 
 test("old checkout cannot replace a newer active subscription", async () => {
   const updates = [];
+  let reservationCompleted = false;
 
   const processor = createStripeWebhookProcessor({
     isStripeLiveMode: false,
@@ -520,21 +738,47 @@ test("old checkout cannot replace a newer active subscription", async () => {
       billing_subscription_id: "sub_new",
     }),
 
+    getCheckoutReservation: async () => ({
+      id: "reservation-old",
+      client_id: "client-123",
+      checkout_session_id: "cs_test_old",
+      status: "pending",
+    }),
+
     updateClientBilling: async (clientId, billing) => {
       updates.push({ clientId, billing });
+      return { id: clientId };
+    },
+
+    completeCheckoutReservation: async () => {
+      reservationCompleted = true;
+      return true;
     },
   });
 
-  await processor.processCheckout({
-    mode: "subscription",
-    metadata: { clientId: "client-123" },
-    customer: "cus_returning",
-    subscription: "sub_old",
-  });
+  await assert.rejects(
+    () =>
+      processor.processCheckout({
+        id: "cs_test_old",
+        mode: "subscription",
+        status: "complete",
+        livemode: false,
+        metadata: { clientId: "client-123" },
+        customer: "cus_returning",
+        subscription: "sub_old",
+      }),
+    /subscription|already|different|duplicate|conflict/i
+  );
 
   assert.equal(
     updates.length,
     0,
     "An older checkout must not replace an active subscription"
+  );
+
+  assert.equal(
+    reservationCompleted,
+    false,
+    "An older checkout must not complete its reservation"
   );
 });

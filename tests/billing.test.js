@@ -116,14 +116,14 @@ assert.strictEqual(
   false
 );
 
-// Unpaid subscriptions must be rejected.
+// Past-due subscriptions must block duplicate Checkout.
 assert.strictEqual(
   isValidStripeSubscription(
     { ...liveSubscription, status: "past_due" },
     clientId,
     true
   ),
-  false
+  true
 );
 
 // Missing trial expiration must be rejected.

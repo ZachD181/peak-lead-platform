@@ -38,7 +38,7 @@ test("billing updates require matching Stripe identities", () => {
 
   assert.match(
     billingCode,
-    /billing_subscription_id\s*=\s*\$8/,
+    /billing_subscription_id\s+IS NOT DISTINCT FROM\s+\$8::text/i,
     "SQL must check the expected Stripe subscription ID"
   );
 
@@ -101,7 +101,7 @@ test("billing update sends expected identity to PostgreSQL", () => {
 
       assert.match(
         capturedQuery.sql,
-        /billing_subscription_id\\s*=\\s*\\$8/
+      /billing_subscription_id\\s+IS NOT DISTINCT FROM\\s+\\$8::text/i
       );
 
       console.log("Billing identity parameters verified");
@@ -313,6 +313,7 @@ test("matching billing identity allows a valid update", () => {
 
 test("canceled customer can activate a new subscription", async () => {
   const updates = [];
+  let transactionCompleted = false;
 
   const processor = createStripeWebhookProcessor({
     isStripeLiveMode: false,
@@ -336,13 +337,37 @@ test("canceled customer can activate a new subscription", async () => {
       billing_subscription_id: "sub_old",
     }),
 
-    updateClientBilling: async (clientId, billing) => {
-      updates.push({ clientId, billing });
-    },
+    getCheckoutReservation: async () => ({
+      id: "reservation-123",
+      client_id: "client-123",
+      checkout_session_id: "cs_test_returning",
+      status: "pending",
+    }),
+
+   finalizeCheckoutBilling: async (
+  clientId,
+  reservationId,
+  checkoutSessionId,
+  billing
+) => {
+  updates.push({
+    clientId,
+    reservationId,
+    checkoutSessionId,
+    billing,
+  });
+
+  transactionCompleted = true;
+
+  return { id: clientId };
+},
   });
 
   await processor.processCheckout({
+    id: "cs_test_returning",
     mode: "subscription",
+    status: "complete",
+    livemode: false,
     metadata: { clientId: "client-123" },
     customer: "cus_returning",
     subscription: "sub_new",
@@ -357,4 +382,12 @@ test("canceled customer can activate a new subscription", async () => {
   assert.equal(updates[0].billing.subscriptionStatus, "active");
   assert.equal(updates[0].billing.billingCustomerId, "cus_returning");
   assert.equal(updates[0].billing.billingSubscriptionId, "sub_new");
+  assert.equal(updates[0].billing.expectedSubscriptionId, "sub_old");
+ assert.equal(transactionCompleted, true);
+assert.equal(updates[0].reservationId, "reservation-123");
+assert.equal(updates[0].checkoutSessionId, "cs_test_returning");
+assert.equal(
+  updates[0].billing.expectedCustomerId,
+  "cus_returning"
+);
 });

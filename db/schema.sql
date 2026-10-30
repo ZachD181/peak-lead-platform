@@ -165,6 +165,10 @@ alter table clients
 
 alter table clients
   add column if not exists trial_ends_at timestamptz;
+-- Track whether a customer has already received a free trial
+
+alter table clients
+  add column if not exists trial_used boolean not null default false;
 
 alter table clients
   add column if not exists billing_customer_id text;
@@ -334,4 +338,22 @@ CREATE TABLE IF NOT EXISTS follow_up_reminder_deliveries (
     sent_at TIMESTAMPTZ,
 
     UNIQUE (client_id, user_id, reminder_date)
+);
+-- Prevent duplicate Stripe Checkout attempts
+create table if not exists checkout_reservations (
+    id uuid not null default gen_random_uuid() unique,
+  client_id uuid primary key
+    references clients(id)
+    on delete cascade,
+
+  checkout_session_id text unique,
+
+  status text not null default 'pending',
+
+  created_at timestamptz not null default now(),
+
+  expires_at timestamptz not null,
+
+  constraint checkout_reservations_status_check
+    check (status in ('pending', 'completed'))
 );
