@@ -330,57 +330,7 @@ setValue(
     }
 
 
-    customerScoring.innerHTML = `
-      <p>
-        <strong>Immediate Need:</strong>
-        ${rules.immediately ?? "—"}
-      </p>
 
-      <p>
-        <strong>Within 30 Days:</strong>
-        ${
-          rules.within_30_days ??
-          rules.within30Days ??
-          "—"
-        }
-      </p>
-
-      <p>
-        <strong>Ready to Buy:</strong>
-        ${
-          rules.ready_to_buy ??
-          rules.readyToBuy ??
-          "—"
-        }
-      </p>
-
-      <p>
-        <strong>Actively Comparing:</strong>
-        ${
-          rules.actively_comparing ??
-          rules.activelyComparing ??
-          "—"
-        }
-      </p>
-
-      <p>
-        <strong>High Priority Threshold:</strong>
-        ${
-          rules.high_priority_threshold ??
-          rules.highPriorityThreshold ??
-          "—"
-        }
-      </p>
-
-      <p>
-        <strong>Qualified Threshold:</strong>
-        ${
-          rules.qualified_threshold ??
-          rules.qualifiedThreshold ??
-          "—"
-        }
-      </p>
-    `;
 
   } catch (error) {
     console.error(
