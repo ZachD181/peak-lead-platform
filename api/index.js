@@ -249,11 +249,7 @@ function readBody(req) {
   });
 }
 
-module.exports.config = {
-  api: {
-    bodyParser: false,
-  },
-};
+
 
 
 async function handleCaptureLead(req, res) {
@@ -2882,4 +2878,9 @@ if (
       error: error.message,
     });
   }
+};
+module.exports.config = {
+  api: {
+    bodyParser: false,
+  },
 };
