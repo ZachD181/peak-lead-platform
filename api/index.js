@@ -249,6 +249,12 @@ function readBody(req) {
   });
 }
 
+module.exports.config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
 
 async function handleCaptureLead(req, res) {
   const captureKey = cleanText(
