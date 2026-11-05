@@ -1053,6 +1053,13 @@ return sendJson(res, 200, {
 }
 
 async function handleStripeWebhook(req, res) {
+  console.log("STRIPE WEBHOOK DEBUG", {
+  hasParsedBody: req.body !== undefined,
+  bodyType: typeof req.body,
+  hasRawBody: Buffer.isBuffer(req.rawBody),
+  contentType: req.headers["content-type"],
+  contentLength: req.headers["content-length"],
+  });
   const signature =
     req.headers["stripe-signature"];
 
