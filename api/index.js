@@ -1081,15 +1081,22 @@ async function handleStripeWebhook(req, res) {
   let event;
 
   try {
-    const rawBody =
-      await readRawBody(req);
+   const rawBody = await readRawBody(req);
 
-    event =
-      stripe.webhooks.constructEvent(
-        rawBody,
-        signature,
-        webhookSecret
-      );
+console.log("STRIPE RAW BODY CHECK", {
+  rawBodyLength: rawBody.length,
+  expectedLength: Number(req.headers["content-length"] || 0),
+  hasParsedBody: req.body !== undefined,
+  hasRawBody: Buffer.isBuffer(req.rawBody),
+  webhookSecretHasWhitespace:
+    webhookSecret !== webhookSecret.trim(),
+});
+
+event = stripe.webhooks.constructEvent(
+  rawBody,
+  signature,
+  webhookSecret
+);
   } catch (error) {
     console.error(
       "Stripe webhook verification failed:",
