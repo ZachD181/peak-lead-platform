@@ -1053,14 +1053,7 @@ return sendJson(res, 200, {
 }
 
 async function handleStripeWebhook(req, res) {
-  console.log("STRIPE WEBHOOK DEBUG", {
-  hasParsedBody: req.body !== undefined,
-  bodyType: typeof req.body,
-  hasRawBody: Buffer.isBuffer(req.rawBody),
-  contentType: req.headers["content-type"],
-  contentLength: req.headers["content-length"],
-  });
-  const signature =
+const signature =
     req.headers["stripe-signature"];
 
   if (!signature) {
@@ -1083,14 +1076,7 @@ async function handleStripeWebhook(req, res) {
   try {
    const rawBody = await readRawBody(req);
 
-console.log("STRIPE RAW BODY CHECK", {
-  rawBodyLength: rawBody.length,
-  expectedLength: Number(req.headers["content-length"] || 0),
-  hasParsedBody: req.body !== undefined,
-  hasRawBody: Buffer.isBuffer(req.rawBody),
-  webhookSecretHasWhitespace:
-    webhookSecret !== webhookSecret.trim(),
-});
+
 
 event = stripe.webhooks.constructEvent(
   rawBody,
