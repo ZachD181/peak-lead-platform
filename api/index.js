@@ -250,43 +250,6 @@ function readBody(req) {
 }
 
 
-
-
-async function handleCaptureLead(req, res) {
-  const captureKey = cleanText(
-    req.headers["x-capture-key"],
-    200
-  );
-
-  if (!captureKey) {
-    return sendJson(res, 401, {
-      error: "Capture key is required.",
-    });
-  }
-
-console.log("CAPTURE: looking up client");
-
-
-  const client =
-    await getClientByCaptureKey(captureKey);
-
-  if (!client) {
-    return sendJson(res, 401, {
-      error: "Invalid capture key.",
-    });
-  }
-
-  const session = {
-    clientId: client.id,
-  };
-
-  return handleCreateLead(
-    req,
-    res,
-    session
-  );
-}
-
 function readRawBody(req) {
   return new Promise((resolve, reject) => {
     const chunks = [];
