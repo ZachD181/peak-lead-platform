@@ -2702,7 +2702,7 @@ if (
   req.method === "PATCH" &&
   url.pathname === "/api/settings"
 ) {
-  const session = await requireSession(req, res);
+  const session = await requireActiveSubscription(req, res);
 
   if (!session) return;
 
