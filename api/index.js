@@ -1567,6 +1567,30 @@ async function handleUpdateLead(
 ) {
   const input = await readBody(req);
 
+  if (
+    input.assignedUserId !== undefined &&
+    input.assignedUserId !== null
+  ) {
+    const assignedUserId = cleanText(
+      input.assignedUserId,
+      100
+    );
+
+    const users = await getUsersByClient(
+      session.clientId
+    );
+
+    const validUser = users.some(
+      (user) => String(user.id) === assignedUserId
+    );
+
+    if (!validUser) {
+      return sendJson(res, 400, {
+        error: "Invalid assigned user.",
+      });
+    }
+  }
+
   const existingLeads = await getLeadsByClient(session.clientId);
 
 const previousLead = existingLeads.find(
@@ -1807,7 +1831,7 @@ async function handleLogin(req, res) {
     });
   }
 
- const token = createSessionToken();
+const token = createSessionToken();
 
 const now = new Date();
 
