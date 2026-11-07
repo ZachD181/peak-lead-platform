@@ -519,8 +519,6 @@ if (campaignId) {
 }
 
 async function handleCaptureLead(req, res) {
-  const input = await readBody(req);
-
   const captureKey = cleanText(
     req.headers["x-capture-key"],
     200
