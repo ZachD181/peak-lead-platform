@@ -2,8 +2,7 @@ const crypto = require("crypto");
 
 const {
   createPasswordResetToken,
-getValidPasswordResetToken,
-markPasswordResetTokenUsed,
+resetPasswordWithToken,
   createClient,
 createUser,
 updateScoringRulesByClient,
@@ -2449,30 +2448,22 @@ async function handleResetPassword(req, res) {
       .update(token)
       .digest("hex");
 
-  const resetRecord =
-    await getValidPasswordResetToken(
-      tokenHash
-    );
+const passwordData =
+  await hashPassword(password);
 
-  if (!resetRecord) {
-    return sendJson(res, 400, {
-      error:
-        "This password reset link is invalid or has expired.",
-    });
-  }
-
-  const passwordData =
-    await hashPassword(password);
-
-  await updateUserPassword(
-    resetRecord.user_id,
+const resetSucceeded =
+  await resetPasswordWithToken(
+    tokenHash,
     passwordData.salt,
     passwordData.hash
   );
 
-  await markPasswordResetTokenUsed(
-    resetRecord.id
-  );
+if (!resetSucceeded) {
+  return sendJson(res, 400, {
+    error:
+      "This password reset link is invalid or has expired.",
+  });
+}
 
   return sendJson(res, 200, {
     success: true,
