@@ -967,11 +967,7 @@ async function handleForgotPassword(req, res) {
 
 const resetUrl =
   `${origin}/reset-password.html?token=${resetToken}`;
-  console.log("PASSWORD RESET DEBUG:", {
-  email,
-  resendConfigured: Boolean(resend),
-  resetUrl,
-});
+ 
 
   if (resend) {
     const resendResult = await resend.emails.send({
@@ -992,20 +988,6 @@ const resetUrl =
   console.error("Password reset email failed:", resendResult.error.message);
 }
 
-}
-
-if (
-  process.env.NODE_ENV !== "production"
-) {
-  console.log(
-    "Development password reset URL:",
-    resetUrl
-  );
-
-  return sendJson(res, 200, {
-    success: true,
-    resetUrl,
-  });
 }
 
 return sendJson(res, 200, {
