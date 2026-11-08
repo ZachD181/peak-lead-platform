@@ -955,11 +955,18 @@ async function handleForgotPassword(req, res) {
       Date.now() + 30 * 60 * 1000
     ).toISOString();
 
-  await createPasswordResetToken({
-    userId: user.id,
-    tokenHash,
-    expiresAt,
+  const resetRecord =
+    await createPasswordResetToken({
+      userId: user.id,
+      tokenHash,
+      expiresAt,
   });
+
+if (!resetRecord) {
+  return sendJson(res, 200, {
+    success: true,
+  });
+}
 
  const origin =
   process.env.APP_URL || "http://localhost:3000";
