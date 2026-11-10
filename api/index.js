@@ -1,6 +1,7 @@
 const crypto = require("crypto");
 
 const {
+  authenticateWithLoginLimit,
   createPasswordResetToken,
 resetPasswordWithToken,
   createClient,
@@ -1799,25 +1800,25 @@ async function handleLogin(req, res) {
     });
   }
 
-  const user = await getUserByEmail(email);
-
-  if (!user) {
-    return sendJson(res, 401, {
-      error: "Invalid email or password.",
-    });
-  }
-
-  const validPassword = await verifyPassword(
+    const loginResult = await authenticateWithLoginLimit(
+    email,
     password,
-    user.passwordSalt,
-    user.passwordHash
+    verifyPassword
   );
 
-  if (!validPassword) {
+  if (loginResult.blocked) {
+    return sendJson(res, 429, {
+      error: "Too many login attempts. Please try again later.",
+    });
+  }
+
+  if (!loginResult.user) {
     return sendJson(res, 401, {
       error: "Invalid email or password.",
     });
   }
+
+  const user = loginResult.user;
 
 const token = createSessionToken();
 

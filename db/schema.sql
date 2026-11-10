@@ -357,3 +357,17 @@ create table if not exists checkout_reservations (
   constraint checkout_reservations_status_check
     check (status in ('pending', 'completed'))
 );
+
+-- =========================================================
+-- LOGIN RATE LIMITING
+-- =========================================================
+
+CREATE TABLE IF NOT EXISTS login_attempts (
+  email_hash TEXT PRIMARY KEY,
+  failed_attempts INTEGER NOT NULL DEFAULT 0,
+  window_started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+  CONSTRAINT login_attempts_nonnegative
+    CHECK (failed_attempts >= 0)
+);
