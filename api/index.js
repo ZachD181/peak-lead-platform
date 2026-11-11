@@ -1950,6 +1950,46 @@ async function handleAdminClients(res) {
   });
 }
 
+
+function isTrustedCsrfOrigin(req) {
+  const trustedOrigins = new Set([
+    "http://localhost:3000",
+  ]);
+
+  if (process.env.APP_URL) {
+    try {
+      const appUrl = new URL(process.env.APP_URL);
+      if (appUrl.protocol === "https:") {
+        trustedOrigins.add(appUrl.origin);
+      }
+    } catch {
+      // Ignore an invalid APP_URL.
+    }
+  }
+  if (process.env.VERCEL_ENV === "preview") {
+    trustedOrigins.add(
+      "https://peak-lead-platform-git-sandbox-testing-zachd181s-projects.vercel.app"
+    );
+  }
+
+  if (process.env.VERCEL_ENV === "preview" && process.env.VERCEL_URL) {
+    trustedOrigins.add(`https://${process.env.VERCEL_URL}`);
+  }
+  const origin = req.headers.origin;
+
+  if (typeof origin !== "string") {
+    return false;
+  }
+
+  try {
+    return trustedOrigins.has(new URL(origin).origin) &&
+      new URL(origin).href === `${new URL(origin).origin}/`;
+  } catch {
+    return false;
+  }
+}
+
+
 async function requireSession(req, res) {
   const sessionId = getCookie(
     req,
@@ -1969,6 +2009,17 @@ async function requireSession(req, res) {
   if (!session) {
     sendJson(res, 401, {
       error: "Session expired or invalid.",
+    });
+
+    return null;
+  }
+
+  const unsafeMethod = ["POST", "PATCH", "PUT", "DELETE"]
+    .includes(req.method);
+
+  if (unsafeMethod && !isTrustedCsrfOrigin(req)) {
+    sendJson(res, 403, {
+      error: "Forbidden: invalid request origin.",
     });
 
     return null;
@@ -2067,6 +2118,18 @@ async function requireActiveSubscription(req, res) {
 
 
 async function handleLogout(req, res) {
+  const unsafeMethod = ["POST", "PATCH", "PUT", "DELETE"]
+    .includes(req.method);
+
+  if (
+    unsafeMethod &&
+    getCookie(req, "peak_session") &&
+    !isTrustedCsrfOrigin(req)
+  ) {
+    return sendJson(res, 403, {
+      error: "Forbidden: invalid request origin.",
+    });
+  }
   const sessionId = getCookie(
     req,
     "peak_session"

@@ -151,6 +151,7 @@ test("Canceled customer can restart Checkout without another trial", () => {
     req.url = "/api/create-checkout-session";
     req.headers = {
       host: "localhost:3000",
+      origin: "http://localhost:3000",
       cookie: "peak_session=test-session-123"
     };
 
@@ -299,6 +300,7 @@ test("Active customer cannot start duplicate Checkout", () => {
     req.url = "/api/create-checkout-session";
     req.headers = {
       host: "localhost:3000",
+      origin: "http://localhost:3000",
       cookie: "peak_session=test-session-123"
     };
 
