@@ -2232,8 +2232,10 @@ function isAuthorizedReminderJob(req) {
 }
 
 const handleLeadConnections = require("../lib/leadConnections").createHandler({
-  requireActiveSubscription, readBody, readRawBody, sendJson,
+  requireActiveSubscription, readBody, readRawBody: (req, maxBytes) => req.verifiedMetaRaw ? Promise.resolve(req.verifiedMetaRaw) : readRawBody(req, maxBytes), sendJson,
 });
+
+const handleSharedMetaWebhook = require("../lib/metaWebhook").createHandler({readRawBody, sendJson, handleLeadConnections});
 
 module.exports = async function handler(req, res) {
   try {
@@ -2241,6 +2243,9 @@ module.exports = async function handler(req, res) {
       req.url,
       "http://localhost"
     );
+    if (url.pathname === "/api/integrations/meta/webhook") {
+      await handleSharedMetaWebhook(req, res, url); return;
+    }
     if (url.pathname.startsWith("/api/lead-connections/") || url.pathname.endsWith("/connection")) {
       if (await handleLeadConnections(req, res, url)) return;
     }
