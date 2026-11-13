@@ -2044,3 +2044,14 @@ body:not([data-page="dashboard"]) .dashboard-preview > .follow-up-card {
 .signup-plan .signup-price { margin-top: 4px; color: var(--accent); font-size: 1.15rem; font-weight: 700; }
 .signup-plan p + p { margin-top: 12px; }
 .signup-plan p:not(.eyebrow):not(.signup-price) { color: var(--muted); font-size: .9rem; }
+
+.connection-panel { scroll-margin-top: 24px; }
+.connection-panel[hidden], .connection-panel [hidden] { display: none; }
+.connection-panel p, .connection-panel h3, .connection-panel ol { margin: 16px 0; }
+.connection-panel p, .connection-panel li { color: var(--muted); }
+.connection-panel ol { padding-left: 24px; }
+.connection-panel a:not(.secondary-button) { color: var(--accent); text-decoration: underline; }
+.connection-panel label { margin-top: 16px; }
+.connection-panel .secondary-button { margin: 10px 8px 0 0; cursor: pointer; }
+.connection-panel #connection-status { color: var(--text); padding: 14px; border: 1px solid var(--line); border-radius: 10px; }
+.connection-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }

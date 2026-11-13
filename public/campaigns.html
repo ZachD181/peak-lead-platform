@@ -23,14 +23,14 @@
   </div>
 
   <div class="nav-links">
-    <a href="/">Dashboard</a>
+    <a href="/dashboard.html">Dashboard</a>
     <a href="/campaigns.html">Campaigns</a>
     <a href="/billing.html">Billing</a>
     <a href="/account.html">Account</a>
 
     <a
       id="settings-link"
-      href="/#settings"
+      href="/dashboard.html#settings"
       class="admin-only hidden"
     >
       Settings
@@ -186,6 +186,42 @@
         </form>
       </section>
 
+      <section id="connection-panel" class="campaign-form-section connection-panel" hidden aria-labelledby="connection-title">
+        <h2 id="connection-title">Connect campaign</h2>
+        <p>Send new lead-form submissions into Peak automatically. Creating a connection does not launch ads or change your ad budget.</p>
+        <p id="connection-status" role="status" aria-live="polite"></p>
+        <form id="connection-form" hidden>
+          <div id="meta-connection-fields" hidden>
+            <p>Meta requires a developer app and a Page access token with lead-retrieval access. Credentials are encrypted and never shown again.</p>
+            <label>Facebook Page ID<input id="connection-page" inputmode="numeric" pattern="[0-9]+" autocomplete="off" /></label>
+            <label>Instant Form ID<input id="connection-meta-form" inputmode="numeric" pattern="[0-9]+" autocomplete="off" /></label>
+            <label>Meta app secret<input id="connection-app-secret" type="password" autocomplete="new-password" /></label>
+            <label>Page access token<input id="connection-page-token" type="password" autocomplete="new-password" /></label>
+          </div>
+          <button id="connection-save" class="primary-button" type="submit">Create Connection</button>
+        </form>
+        <div id="connection-values" hidden>
+          <label>Webhook URL<input id="connection-url" readonly /></label>
+          <button id="copy-connection-url" class="secondary-button" type="button">Copy URL</button>
+          <label>Private verification key<input id="connection-key" type="password" readonly autocomplete="off" /></label>
+          <button id="copy-connection-key" class="secondary-button" type="button">Copy Key</button>
+          <button id="show-connection-key" class="secondary-button" type="button">Show key</button>
+          <div id="google-connection-steps" hidden>
+            <h3>Finish in Google Ads</h3>
+            <ol><li>Open the campaign’s lead form asset in Google Ads.</li><li>In lead delivery, paste the Webhook URL and use the Private verification key as the Google key.</li><li>Make the form collect an email address or phone number, plus the lead’s name.</li><li>Click Google’s Send test data button, then refresh this connection’s status.</li></ol>
+            <p>Google test leads are labeled in their activity history. The same delivery received twice creates only one lead.</p>
+            <a href="https://developers.google.com/google-ads/webhook/docs/testing" target="_blank" rel="noopener noreferrer">Google’s lead-form test guide</a>
+          </div>
+          <div id="meta-connection-steps" hidden>
+            <h3>Finish in Meta</h3>
+            <ol><li>In your Meta developer app, add a Page webhook using the Webhook URL and Private verification key as the Verify token.</li><li>Subscribe to the Page’s leadgen field, and install the app on the Page.</li><li>Grant the Page token the required lead access and allow the app to retrieve the selected Instant Form’s leads.</li><li>Use Meta’s Lead Ads Testing Tool to create a test lead for this Page and form.</li><li>Refresh status here, then open Dashboard to see the captured lead.</li></ol>
+            <p>Receiving a verification challenge is only the first step. A lead must arrive before this connection is proven end to end. Meta may require app review for customers outside your app’s roles.</p>
+            <a href="https://developers.facebook.com/tools/lead-ads-testing" target="_blank" rel="noopener noreferrer">Open Meta’s Lead Ads Testing Tool</a>
+          </div>
+        </div>
+        <div class="connection-actions"><button id="connection-refresh" class="secondary-button" type="button">Refresh Status</button><a href="/dashboard.html" class="secondary-button">Open Dashboard</a></div>
+      </section>
+
       <section class="campaign-list-section">
         <div class="section-heading">
           <div>
@@ -204,6 +240,7 @@
     </section>
   </main>
 
+  <script src="/campaign-connections.js"></script>
   <script src="/campaigns.js"></script>
 </body>
 </html>

@@ -250,11 +250,20 @@ function readBody(req) {
 }
 
 
-function readRawBody(req) {
+function readRawBody(req, maxBytes = Infinity) {
   return new Promise((resolve, reject) => {
     const chunks = [];
+    let totalBytes = 0;
+    let oversized = false;
 
     req.on("data", (chunk) => {
+      if (oversized) return;
+      totalBytes += Buffer.byteLength(chunk);
+      if (totalBytes > maxBytes) {
+        oversized = true; chunks.length = 0;
+        const error = new Error("Request too large."); error.status = 413;
+        reject(error); return;
+      }
       chunks.push(chunk);
     });
 
@@ -2222,12 +2231,19 @@ function isAuthorizedReminderJob(req) {
   return authorization === `Bearer ${secret}`;
 }
 
+const handleLeadConnections = require("../lib/leadConnections").createHandler({
+  requireActiveSubscription, readBody, readRawBody, sendJson,
+});
+
 module.exports = async function handler(req, res) {
   try {
     const url = new URL(
       req.url,
       "http://localhost"
     );
+    if (url.pathname.startsWith("/api/lead-connections/") || url.pathname.endsWith("/connection")) {
+      if (await handleLeadConnections(req, res, url)) return;
+    }
         if (
       req.method === "GET" &&
       url.pathname === "/api/cron/follow-up-reminders"

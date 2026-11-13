@@ -1,3 +1,7 @@
+function escapeCampaignText(value = "") {
+  return String(value).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function safeCampaignUrl(value) { try { const url = new URL(value); return ["https:", "http:"].includes(url.protocol) ? escapeCampaignText(url.href) : ""; } catch { return ""; } }
 const campaignForm =
   document.getElementById("campaign-form");
 
@@ -79,16 +83,16 @@ function renderCampaigns(campaigns) {
             <div class="campaign-card-header">
               <div>
                 <p class="eyebrow">
-                  ${campaign.source || "Campaign"}
+                  ${escapeCampaignText(campaign.source || "Campaign")}
                 </p>
 
                 <h3>
-                  ${campaign.name}
+                  ${escapeCampaignText(campaign.name)}
                 </h3>
               </div>
 
               <span class="status-badge">
-                ${campaign.status}
+                ${escapeCampaignText(campaign.status)}
               </span>
             </div>
 
@@ -117,10 +121,10 @@ function renderCampaigns(campaigns) {
               <p>
                 <strong>Landing Page:</strong>
                 ${
-                  campaign.landingPageUrl
+                  safeCampaignUrl(campaign.landingPageUrl)
                     ? `
                       <a
-                        href="${campaign.landingPageUrl}"
+                        href="${safeCampaignUrl(campaign.landingPageUrl)}"
                         target="_blank"
                         rel="noopener noreferrer"
                       >
@@ -131,10 +135,15 @@ function renderCampaigns(campaigns) {
                 }
               </p>
             </div>
+            ${["Google Ads","Facebook","Instagram"].includes(campaign.source) ? '<button type="button" class="primary-button" data-connect-campaign="'+escapeCampaignText(campaign.id)+'">Connect Lead Form</button>' : ''}
           </article>
         `
       )
       .join("");
+  campaignList.querySelectorAll("[data-connect-campaign]").forEach(button => button.addEventListener("click", () => {
+    const campaign = campaigns.find(item => item.id === button.dataset.connectCampaign);
+    if (campaign) openConnection(campaign);
+  }));
 }
 
 async function loadCampaigns() {
@@ -152,6 +161,7 @@ async function loadCampaigns() {
       return;
     }
 
+    if (response.status === 402) { window.location.href = "/billing.html"; return; }
     const data =
       await response.json();
 
@@ -168,7 +178,7 @@ async function loadCampaigns() {
   } catch (error) {
     campaignList.innerHTML = `
       <p>
-        ${error.message}
+        ${escapeCampaignText(error.message)}
       </p>
     `;
   }
