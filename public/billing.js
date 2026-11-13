@@ -169,7 +169,7 @@ if (!response.ok) {
   billingSubtitle.textContent =
     "Restart your subscription to restore full access to Peak.";
 } else if (status === "trialing") {
-  billingTitle.textContent = "Your Peak trial";
+  billingTitle.textContent = data.cancelAtPeriodEnd ? "Your Peak trial is ending" : "Your Peak trial";
 
   if (data.trialEndsAt) {
     const trialEnd = new Date(data.trialEndsAt);
@@ -197,7 +197,7 @@ if (!response.ok) {
       );
 
     billingSubtitle.innerHTML =
-      `Trial ends ${formattedDate}<br>` +
+      `Trial ${data.cancelAtPeriodEnd ? "access ends" : "ends"} ${formattedDate}<br>` +
       `${daysRemaining} ${daysRemaining === 1 ? "day" : "days"} remaining`;
   } else {
     billingSubtitle.textContent =
@@ -231,6 +231,9 @@ if (!response.ok) {
   } else if (status === "canceled") {
     billingMessage.textContent =
       "Your Peak subscription is canceled. Upgrade to restore access.";
+  } else if (status === "trialing" && data.cancelAtPeriodEnd) {
+    billingMessage.textContent =
+      "Cancellation scheduled. You can use Peak until your trial ends, and your subscription will not renew.";
   } else if (status === "trialing") {
     billingMessage.textContent =
       "Your Peak account is currently on trial.";
