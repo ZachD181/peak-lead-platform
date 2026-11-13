@@ -1540,7 +1540,7 @@ async function handleCreateBillingPortal(
   const portalSession =
     await stripe.billingPortal.sessions.create({
       customer: billingCustomerId,
-      return_url: `${origin}/`,
+      return_url: `${origin}/billing.html`,
     });
 
   return sendJson(res, 200, {
