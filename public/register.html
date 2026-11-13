@@ -20,8 +20,17 @@
       <h1>Create Your Peak Account</h1>
 
       <p class="auth-subtitle">
-        Start your Peak Lead Platform trial.
+        See your plan and billing terms before you create an account.
       </p>
+
+      <aside class="signup-plan" aria-label="Plan and trial details">
+        <p class="eyebrow">PEAK LEAD PLATFORM</p>
+        <h2>14 days free</h2>
+        <p id="signup-price" class="signup-price" aria-live="polite">Loading plan price…</p>
+        <p>Create your account first, then activate your trial in secure Stripe checkout. A payment method is required to start the trial.</p>
+        <p>Your subscription renews automatically at the displayed price after the trial unless you cancel beforehand. Cancel through Billing → Manage Subscription.</p>
+        <p>Creating an account does not charge your card. Stripe checkout confirms the exact amount and billing date before you subscribe.</p>
+      </aside>
 
       <form id="register-form">
         <label>
@@ -79,7 +88,7 @@
           type="submit"
           class="primary-button"
         >
-          Start Trial
+          Create Account
         </button>
 
         <p
@@ -97,6 +106,7 @@
     </section>
   </main>
 
+  <script src="/plan.js"></script>
   <script src="/register.js"></script>
 </body>
 </html>

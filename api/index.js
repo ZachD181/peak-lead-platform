@@ -2587,6 +2587,25 @@ async function handleAdminUpdateClientStatus(
     },
   });
 }
+    if (req.method === "GET" && url.pathname === "/api/plan") {
+      try {
+        const price = await stripe.prices.retrieve(process.env.STRIPE_PRICE_ID);
+        if (!price.active || !Number.isInteger(price.unit_amount) || !price.recurring) {
+          throw new Error("The configured plan is not an active fixed recurring price.");
+        }
+        return sendJson(res, 200, {
+          amount: price.unit_amount,
+          currency: price.currency,
+          interval: price.recurring.interval,
+          intervalCount: price.recurring.interval_count,
+          trialDays: 14,
+        });
+      } catch (error) {
+        console.error("Public plan lookup failed:", error.type || "configuration_error");
+        return sendJson(res, 503, { error: "Pricing is temporarily unavailable. Please try again shortly." });
+      }
+    }
+
     if (
       req.method === "GET" &&
       url.pathname === "/api/health"

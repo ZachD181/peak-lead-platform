@@ -2038,3 +2038,9 @@ body:not([data-page="dashboard"]) .dashboard-preview > .follow-up-card {
   max-width: none;
   margin: 0 0 24px;
 }
+
+.signup-plan { margin: 24px 0; padding: 22px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel-soft); }
+.signup-plan h2 { margin-top: 8px; font-size: 1.6rem; }
+.signup-plan .signup-price { margin-top: 4px; color: var(--accent); font-size: 1.15rem; font-weight: 700; }
+.signup-plan p + p { margin-top: 12px; }
+.signup-plan p:not(.eyebrow):not(.signup-price) { color: var(--muted); font-size: .9rem; }
