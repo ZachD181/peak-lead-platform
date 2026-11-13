@@ -210,12 +210,16 @@ if (!response.ok) {
 
     if (upgradeButton) {
       upgradeButton.style.display =
-        status === "active"
+        (status === "active" || (status === "trialing" && Boolean(data.billingSubscriptionId)))
           ? "none"
           : "inline-block";
     }
 
     if (manageSubscriptionButton) {
+      manageSubscriptionButton.textContent =
+        data.cancelAtPeriodEnd && ["active", "trialing"].includes(status)
+          ? "Resume Subscription"
+          : "Manage Subscription";
       manageSubscriptionButton.style.display =
         hasStripeCustomer
           ? "inline-block"
@@ -233,7 +237,7 @@ if (!response.ok) {
       "Your Peak subscription is canceled. Upgrade to restore access.";
   } else if (status === "trialing" && data.cancelAtPeriodEnd) {
     billingMessage.textContent =
-      "Cancellation scheduled. You can use Peak until your trial ends, and your subscription will not renew.";
+      "Cancellation scheduled. You can use Peak until your trial ends, and your subscription will not renew. To keep it, choose Resume Subscription and confirm in Stripe.";
   } else if (status === "trialing") {
     billingMessage.textContent =
       "Your Peak account is currently on trial.";

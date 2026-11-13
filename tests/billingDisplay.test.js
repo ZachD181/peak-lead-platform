@@ -17,12 +17,14 @@ async function render(data) {
   return elements;
 }
 test('canceled trial shows scheduled cancellation and retains end date',async()=>{
-  const elements=await render({subscriptionStatus:'trialing',trialEndsAt:'2099-11-24T12:00:00Z',cancelAtPeriodEnd:true,billingCustomerId:'cus_test'});
+  const elements=await render({subscriptionStatus:'trialing',trialEndsAt:'2099-11-24T12:00:00Z',cancelAtPeriodEnd:true,billingCustomerId:'cus_test',billingSubscriptionId:'sub_test'});
   assert.equal(elements['billing-title'].textContent,'Your Peak trial is ending');
   assert.match(elements['billing-subtitle'].innerHTML,/Trial access ends November 24, 2099/);
   assert.match(elements['billing-message'].textContent,/Cancellation scheduled/);
   assert.match(elements['billing-message'].textContent,/will not renew/);
   assert.equal(elements['manage-subscription-button'].style.display,'inline-block');
+  assert.equal(elements['manage-subscription-button'].textContent,'Resume Subscription');
+  assert.equal(elements['upgrade-button'].style.display,'none');
 });
 test('renewing trial retains normal trial message',async()=>{
   const elements=await render({subscriptionStatus:'trialing',trialEndsAt:'2099-11-24T12:00:00Z',cancelAtPeriodEnd:false});
@@ -30,7 +32,7 @@ test('renewing trial retains normal trial message',async()=>{
   assert.equal(elements['billing-message'].textContent,'Your Peak account is currently on trial.');
 });
 test('canceled paid subscription retains scheduled end date message',async()=>{
-  const elements=await render({subscriptionStatus:'active',currentPeriodEnd:'2099-11-24T12:00:00Z',cancelAtPeriodEnd:true,billingCustomerId:'cus_test'});
+  const elements=await render({subscriptionStatus:'active',currentPeriodEnd:'2099-11-24T12:00:00Z',cancelAtPeriodEnd:true,billingCustomerId:'cus_test',billingSubscriptionId:'sub_test'});
   assert.match(elements['billing-subtitle'].textContent,/active until November 24, 2099 and will not renew/);
   assert.equal(elements['upgrade-button'].style.display,'none');
 });
