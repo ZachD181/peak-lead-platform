@@ -217,8 +217,29 @@
   </div>
 
 
-    <div class="dashboard-empty">
-      Preview of how your leads will appear in the pipeline.
+    <p class="demo-caption">Fictional leads showing how scoring helps you choose your next action.</p>
+    <div id="demo" class="demo-lead-grid" aria-label="Sample leads">
+      <article class="demo-lead">
+        <div class="demo-lead-heading"><h4>Alex Morgan</h4><span class="score high" aria-label="Lead score 94 out of 100">94</span></div>
+        <p class="demo-source">Google Ads · Kitchen remodel</p>
+        <span class="lead-stage">New</span>
+        <p>Ready to start this month. Budget confirmed and phone provided.</p>
+        <div class="demo-next-action"><strong>Next step</strong> Call today to book a consultation.</div>
+      </article>
+      <article class="demo-lead">
+        <div class="demo-lead-heading"><h4>Jordan Lee</h4><span class="score high" aria-label="Lead score 78 out of 100">78</span></div>
+        <p class="demo-source">Website · Bathroom renovation</p>
+        <span class="lead-stage">Estimate Sent</span>
+        <p>Estimate delivered. Comparing options for a project next month.</p>
+        <div class="demo-next-action"><strong>Next step</strong> Follow up on the estimate today.</div>
+      </article>
+      <article class="demo-lead">
+        <div class="demo-lead-heading"><h4>Taylor Brooks</h4><span class="score qualified" aria-label="Lead score 62 out of 100">62</span></div>
+        <p class="demo-source">Referral · Home addition</p>
+        <span class="lead-stage">Appointment Set</span>
+        <p>Consultation booked. Exploring scope and budget for a future project.</p>
+        <div class="demo-next-action"><strong>Next step</strong> Prepare for tomorrow’s consultation.</div>
+      </article>
     </div>
 
 </div>
@@ -230,13 +251,13 @@
       <h3>Follow-Ups Due</h3>
     </div>
 
-    <span class="live-badge"><span class="live-badge">SAMPLE DATA</span>
+    <span class="live-badge">SAMPLE DATA</span>
   </div>
 
   <div id="follow-up-list">
-    <div class="dashboard-empty">
-      No follow-ups scheduled.
-    </div>
+    <div class="demo-follow-up"><div><strong>Alex Morgan</strong><p>Call to book a kitchen remodel consultation.</p></div><span class="lead-stage">Today · First call</span></div>
+    <div class="demo-follow-up"><div><strong>Jordan Lee</strong><p>Ask about the estimate and answer questions.</p></div><span class="lead-stage">Today · Follow-up</span></div>
+    <div class="demo-follow-up"><div><strong>Taylor Brooks</strong><p>Confirm the scope before the consultation.</p></div><span class="lead-stage">Tomorrow · Appointment</span></div>
   </div>
 </section>
 
@@ -273,19 +294,19 @@
 
       <div class="brief-stat">
         <span>NEW LEADS</span>
-        <strong id="brief-new">0</strong>
+        <strong id="brief-new">5</strong>
         <small>Last 24 hours</small>
       </div>
 
       <div class="brief-stat">
         <span>HIGH PRIORITY</span>
-        <strong id="brief-high">0</strong>
+        <strong id="brief-high">2</strong>
         <small>Need attention</small>
       </div>
 
       <div class="brief-stat">
         <span>TOP SOURCE</span>
-        <strong id="brief-source">—</strong>
+        <strong id="brief-source">Google</strong>
         <small>Best lead source</small>
       </div>
 
@@ -300,11 +321,11 @@
 
       <div id="brief-first-call">
 
-        <h3>No leads yet</h3>
+        <h3>Call Alex Morgan first</h3>
 
         <p>
-          Peak will identify your highest-priority
-          opportunity here.
+          Score 94/100 · Ready to start this month with a confirmed budget.
+          Book a consultation, then follow up with Jordan about the estimate.
         </p>
 
       </div>
