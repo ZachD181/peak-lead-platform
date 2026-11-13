@@ -2032,3 +2032,9 @@ body:not([data-page="dashboard"]) .demo-follow-up p { color: var(--muted); margi
   body:not([data-page="dashboard"]) .demo-lead-grid { grid-template-columns: 1fr; }
   body:not([data-page="dashboard"]) .demo-follow-up { align-items: flex-start; flex-direction: column; }
 }
+
+body:not([data-page="dashboard"]) .dashboard-preview > .follow-up-card {
+  width: 100%;
+  max-width: none;
+  margin: 0 0 24px;
+}
