@@ -1999,3 +1999,20 @@ footer .brand {
   font-weight: 600;
   line-height: 1.5;
 }
+/* Public demo layout only */
+body:not([data-page="dashboard"]) .dashboard-preview > .pipeline-card {
+  margin-bottom: 24px;
+}
+
+body:not([data-page="dashboard"]) .dashboard-preview > .lead-entry-card {
+  margin: 28px 0 24px;
+}
+/* Public homepage demo only */
+body:not([data-page="dashboard"]) .dashboard-preview .pipeline-board {
+  overflow-x: hidden;
+  scrollbar-width: none;
+}
+
+body:not([data-page="dashboard"]) .dashboard-preview .pipeline-board::-webkit-scrollbar {
+  display: none;
+}

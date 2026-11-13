@@ -1456,13 +1456,19 @@ leadManagerStatus.textContent =
       error.message || "Unable to complete follow-up.";
   }
 });
-loadDashboard();
+const isDashboardPage =
+  document.body.dataset.page === "dashboard";
 
-showAdminControls().then((isAdmin) => {
-  if (isAdmin) {
-    loadSettings();
-  }
-});
+if (isDashboardPage) {
+  loadDashboard();
+
+  showAdminControls().then((isAdmin) => {
+    if (isAdmin) {
+      loadSettings();
+    }
+  });
+
+  loadCampaignOptions();
+}
+
 updateAuthUI();
-
-loadCampaignOptions();
