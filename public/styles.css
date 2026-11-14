@@ -2062,3 +2062,6 @@ body:not([data-page="dashboard"]) .dashboard-preview > .follow-up-card {
 #meta-picker { display: grid; gap: 16px; }
 #meta-picker label { display: grid; gap: 8px; color: var(--muted, #9caebe); }
 #meta-picker select { width: 100%; padding: 12px; border: 1px solid #2b3540; border-radius: 10px; background: #0e1318; color: #eef3f8; font: inherit; }
+
+.connection-panel button.secondary-button { color: var(--text, #eef3f8); }
+#meta-save:disabled { opacity: .5; cursor: not-allowed; }

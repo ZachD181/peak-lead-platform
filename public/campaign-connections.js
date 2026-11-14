@@ -22,6 +22,7 @@ function showConnection(info) {
   const provider=selectedCampaign.source==='Google Ads'?'google':'meta';
   googleSteps.hidden=provider!=='google';metaSteps.hidden=provider!=='meta';metaFields.hidden=true;
   connectionForm.hidden=provider==='meta';metaOAuth.hidden=provider!=='meta';
+  document.getElementById('meta-connect').hidden=false;
   document.getElementById('meta-connect').textContent=info?'Reconnect Facebook':'Connect Facebook';
   document.getElementById('meta-disconnect').hidden=provider!=='meta'||!info;
   document.querySelectorAll('#meta-connection-fields input').forEach(input=>{input.required=false;});
@@ -93,11 +94,13 @@ function fillOptions(select,rows,placeholder) {
   for(const row of rows)select.add(new Option(row.name,row.id));
 }
 async function loadMetaPages() {
-  metaPicker.hidden=true;connectionStatus.textContent='Loading your Facebook Pages…';
+  metaPicker.hidden=true;document.getElementById('meta-save').disabled=true;connectionStatus.textContent='Loading your Facebook Pages…';
   try {
     const data=await metaRequest('pages');fillOptions(metaPage,data.pages,'Choose a Page');
     fillOptions(metaForm,[],'Choose a Page first');metaForm.disabled=true;metaPicker.hidden=false;
-    connectionStatus.textContent=data.pages.length?'Choose the Page and lead form for this campaign.':'No Pages were shared with Peak. Reconnect Facebook and allow Page access.';
+    document.getElementById('meta-connect').hidden=data.pages.length>0;
+    connectionStatus.textContent=data.pages.length?'Facebook sign-in complete. Choose your Page and form below, then click Save Facebook connection.':'No Pages were shared with Peak. Reconnect Facebook and allow Page access.';
+    if(data.pages.length===1){metaPage.value=data.pages[0].id;await loadMetaForms();}
   }catch(error){connectionStatus.textContent=error.message;}
 }
 document.getElementById('meta-connect').addEventListener('click',async event=>{
@@ -106,25 +109,31 @@ document.getElementById('meta-connect').addEventListener('click',async event=>{
   catch(error){connectionStatus.textContent=error.message;event.target.disabled=false;}
 });
 let pageLoadVersion=0;
-metaPage.addEventListener('change',async()=>{
-  const version=++pageLoadVersion;metaForm.disabled=true;fillOptions(metaForm,[],'Loading forms…');
+async function loadMetaForms(){
+  const version=++pageLoadVersion;document.getElementById('meta-save').disabled=true;metaForm.disabled=true;fillOptions(metaForm,[],'Loading forms…');
   if(!metaPage.value){fillOptions(metaForm,[],'Choose a Page first');return;}
   try{
     const data=await metaRequest('forms?pageId='+encodeURIComponent(metaPage.value));
     if(version!==pageLoadVersion)return;
     fillOptions(metaForm,data.forms,data.forms.length?'Choose a lead form':'No active forms found');metaForm.disabled=false;
-    connectionStatus.textContent=data.forms.length?'Choose a form, then save the connection.':'Create an Instant Form for this Page in Meta, then choose the Page again.';
-  }catch(error){if(version===pageLoadVersion)connectionStatus.textContent=error.message;}
-});
+    if(data.forms.length===1)metaForm.value=data.forms[0].id;
+    document.getElementById('meta-save').disabled=!metaForm.value;
+    connectionStatus.textContent=data.forms.length?'Facebook sign-in complete. Confirm the Page and form below, then click Save Facebook connection.':'Create an Instant Form for this Page in Meta, then choose the Page again.';
+  }catch(error){if(version===pageLoadVersion){connectionStatus.textContent=error.message;document.getElementById('meta-connect').hidden=false;}}
+}
+metaPage.addEventListener('change',loadMetaForms);
+metaForm.addEventListener('change',()=>{document.getElementById('meta-save').disabled=!metaPage.value||!metaForm.value;});
 document.getElementById('meta-picker').addEventListener('submit',async event=>{
-  event.preventDefault();const button=document.getElementById('meta-save');button.disabled=true;
+  event.preventDefault();const button=document.getElementById('meta-save');
+  if(!metaPage.value||!metaForm.value){connectionStatus.textContent='Choose both a Facebook Page and a lead form before saving.';return;}
+  button.disabled=true;
   connectionStatus.textContent='Connecting your lead form…';
   try{
     const data=await metaRequest('save','POST',{pageId:metaPage.value,formId:metaForm.value});
     showConnection(data.connection);metaPicker.hidden=true;
     history.replaceState(null,'','/campaigns.html?connect='+encodeURIComponent(selectedCampaign.id));
     connectionStatus.textContent='Connected. New leads from this form will appear in your dashboard.';
-  }catch(error){connectionStatus.textContent=error.message;}finally{button.disabled=false;}
+  }catch(error){connectionStatus.textContent=error.message;document.getElementById('meta-connect').hidden=false;}finally{button.disabled=false;}
 });
 document.getElementById('meta-disconnect').addEventListener('click',async()=>{
   if(!window.confirm('Disconnect this campaign from Facebook? New leads will stop importing. Existing leads stay in Peak.'))return;
