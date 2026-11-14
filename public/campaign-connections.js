@@ -20,8 +20,11 @@ function showConnection(info) {
   currentConnection=info;
   connectionValues.hidden=!info;
   const provider=selectedCampaign.source==='Google Ads'?'google':'meta';
-  googleSteps.hidden=provider!=='google';metaSteps.hidden=provider!=='meta';metaFields.hidden=provider!=='meta';
-  document.querySelectorAll('#meta-connection-fields input').forEach(input=>{input.required=provider==='meta';});
+  googleSteps.hidden=provider!=='google';metaSteps.hidden=provider!=='meta';metaFields.hidden=true;
+  connectionForm.hidden=provider==='meta';metaOAuth.hidden=provider!=='meta';
+  document.getElementById('meta-connect').textContent=info?'Reconnect Facebook':'Connect Facebook';
+  document.getElementById('meta-disconnect').hidden=provider!=='meta'||!info;
+  document.querySelectorAll('#meta-connection-fields input').forEach(input=>{input.required=false;});
   document.getElementById('connection-save').textContent=info?'Replace Connection (changes verification key)':'Create Connection';
   if(!info){connectionStatus.textContent='Not connected. Create a connection below, then finish setup in your ad platform.';return;}
   document.getElementById('connection-url').value=info.webhookUrl;
@@ -37,7 +40,11 @@ function showConnection(info) {
 async function openConnection(campaign) {
   selectedCampaign=campaign;panel.hidden=false;connectionTitle.textContent='Connect '+campaign.name;
   connectionStatus.textContent='Loading connection…';connectionForm.hidden=true;connectionValues.hidden=true;
-  try{const info=await connectionRequest();showConnection(info);connectionForm.hidden=false;}
+  try{const info=await connectionRequest();showConnection(info);
+    metaPicker.hidden=true;
+    const state=new URLSearchParams(location.search).get('meta');
+    if(campaign.source!=='Google Ads'&&state==='ready')await loadMetaPages();
+    if(state==='cancelled')connectionStatus.textContent='Facebook connection was cancelled. Your existing connection has not changed.';}
   catch(error){connectionStatus.textContent=error.message;}
   panel.scrollIntoView({behavior:'smooth',block:'start'});
 }
@@ -67,4 +74,60 @@ for(const [buttonId,inputId] of [['copy-connection-url','connection-url'],['copy
 }
 document.getElementById('show-connection-key').addEventListener('click',event=>{
   const input=document.getElementById('connection-key');input.type=input.type==='password'?'text':'password';event.target.textContent=input.type==='password'?'Show key':'Hide key';
+});
+
+const metaOAuth=document.getElementById('meta-oauth');
+const metaPicker=document.getElementById('meta-picker');
+const metaPage=document.getElementById('meta-page-select');
+const metaForm=document.getElementById('meta-form-select');
+async function metaRequest(action,method='GET',body) {
+  const response=await fetch('/api/campaigns/'+encodeURIComponent(selectedCampaign.id)+'/meta/'+action,{
+    method,headers:body?{'Content-Type':'application/json'}:undefined,body:body?JSON.stringify(body):undefined});
+  const data=await response.json();
+  if(data.canonicalUrl){window.location.assign(data.canonicalUrl);throw new Error('Opening the Facebook connection address…');}
+  if(!response.ok)throw new Error(data.error||'Facebook connection failed.');
+  return data;
+}
+function fillOptions(select,rows,placeholder) {
+  select.replaceChildren(new Option(placeholder,''));
+  for(const row of rows)select.add(new Option(row.name,row.id));
+}
+async function loadMetaPages() {
+  metaPicker.hidden=true;connectionStatus.textContent='Loading your Facebook Pages…';
+  try {
+    const data=await metaRequest('pages');fillOptions(metaPage,data.pages,'Choose a Page');
+    fillOptions(metaForm,[],'Choose a Page first');metaForm.disabled=true;metaPicker.hidden=false;
+    connectionStatus.textContent=data.pages.length?'Choose the Page and lead form for this campaign.':'No Pages were shared with Peak. Reconnect Facebook and allow Page access.';
+  }catch(error){connectionStatus.textContent=error.message;}
+}
+document.getElementById('meta-connect').addEventListener('click',async event=>{
+  event.target.disabled=true;connectionStatus.textContent='Opening Facebook…';
+  try{const data=await metaRequest('start','POST',{});window.location.assign(data.authorizationUrl);}
+  catch(error){connectionStatus.textContent=error.message;event.target.disabled=false;}
+});
+let pageLoadVersion=0;
+metaPage.addEventListener('change',async()=>{
+  const version=++pageLoadVersion;metaForm.disabled=true;fillOptions(metaForm,[],'Loading forms…');
+  if(!metaPage.value){fillOptions(metaForm,[],'Choose a Page first');return;}
+  try{
+    const data=await metaRequest('forms?pageId='+encodeURIComponent(metaPage.value));
+    if(version!==pageLoadVersion)return;
+    fillOptions(metaForm,data.forms,data.forms.length?'Choose a lead form':'No active forms found');metaForm.disabled=false;
+    connectionStatus.textContent=data.forms.length?'Choose a form, then save the connection.':'Create an Instant Form for this Page in Meta, then choose the Page again.';
+  }catch(error){if(version===pageLoadVersion)connectionStatus.textContent=error.message;}
+});
+document.getElementById('meta-picker').addEventListener('submit',async event=>{
+  event.preventDefault();const button=document.getElementById('meta-save');button.disabled=true;
+  connectionStatus.textContent='Connecting your lead form…';
+  try{
+    const data=await metaRequest('save','POST',{pageId:metaPage.value,formId:metaForm.value});
+    showConnection(data.connection);metaPicker.hidden=true;
+    history.replaceState(null,'','/campaigns.html?connect='+encodeURIComponent(selectedCampaign.id));
+    connectionStatus.textContent='Connected. New leads from this form will appear in your dashboard.';
+  }catch(error){connectionStatus.textContent=error.message;}finally{button.disabled=false;}
+});
+document.getElementById('meta-disconnect').addEventListener('click',async()=>{
+  if(!window.confirm('Disconnect this campaign from Facebook? New leads will stop importing. Existing leads stay in Peak.'))return;
+  try{await metaRequest('disconnect','POST',{});showConnection(null);metaPicker.hidden=true;connectionStatus.textContent='Disconnected. Existing leads have been kept.';}
+  catch(error){connectionStatus.textContent=error.message;}
 });

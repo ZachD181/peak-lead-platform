@@ -175,6 +175,9 @@ async function loadCampaigns() {
     renderCampaigns(
       data.campaigns || []
     );
+    const requested=new URLSearchParams(location.search).get('connect');
+    const selected=(data.campaigns||[]).find(c=>c.id===requested);
+    if(selected)await openConnection(selected);
   } catch (error) {
     campaignList.innerHTML = `
       <p>

@@ -105,3 +105,16 @@ test('Meta setup does not report success if Page subscription fails',async()=>{
   const r=await s.request({url:`/api/campaigns/${campaignId}/connection`,body:{pageId:'200',formId:'300',pageToken:'fake-page-token-for-tests-only'}});
   assert.equal(r.status,400);assert.equal(s.stats.stored,undefined);
 });
+
+
+test('replayed signed Meta event returns the original lead without another import',async()=>{
+  const s=setup({provider:'meta'}),body=meta(),signature=sign(body);
+  const first=await s.request({body,signature});
+  const replay=await s.request({body,signature});
+  assert.equal(first.status,200);
+  assert.equal(replay.status,200);
+  assert.equal(s.saved.length,1);
+  assert.equal(first.body.deliveries[0].duplicate,false);
+  assert.equal(replay.body.deliveries[0].duplicate,true);
+  assert.equal(replay.body.deliveries[0].leadId,first.body.deliveries[0].leadId);
+});

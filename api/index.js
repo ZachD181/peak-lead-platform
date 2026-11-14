@@ -2237,12 +2237,17 @@ const handleLeadConnections = require("../lib/leadConnections").createHandler({
 
 const handleSharedMetaWebhook = require("../lib/metaWebhook").createHandler({readRawBody, sendJson, handleLeadConnections});
 
+const handleMetaOAuth = require("../lib/metaOAuth").createHandler({requireActiveSubscription,readBody,sendJson});
+
 module.exports = async function handler(req, res) {
   try {
     const url = new URL(
       req.url,
       "http://localhost"
     );
+    if (url.pathname === "/api/integrations/meta/callback" || /^\/api\/campaigns\/[^/]+\/meta\//.test(url.pathname)) {
+      if (await handleMetaOAuth(req,res,url)) return;
+    }
     if (url.pathname === "/api/integrations/meta/webhook") {
       await handleSharedMetaWebhook(req, res, url); return;
     }

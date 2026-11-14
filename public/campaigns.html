@@ -190,6 +190,16 @@
         <h2 id="connection-title">Connect campaign</h2>
         <p>Send new lead-form submissions into Peak automatically. Creating a connection does not launch ads or change your ad budget.</p>
         <p id="connection-status" role="status" aria-live="polite"></p>
+        <div id="meta-oauth" hidden>
+          <p>Connect Facebook to choose your Page and lead form. New leads will be added to this campaign automatically.</p>
+          <button id="meta-connect" class="primary-button" type="button">Connect Facebook</button>
+          <button id="meta-disconnect" class="secondary-button" type="button" hidden>Disconnect Facebook</button>
+          <form id="meta-picker" hidden>
+            <label>Facebook Page<select id="meta-page-select" required><option value="">Choose a Page</option></select></label>
+            <label>Lead form<select id="meta-form-select" required disabled><option value="">Choose a Page first</option></select></label>
+            <button id="meta-save" class="primary-button" type="submit">Connect lead form</button>
+          </form>
+        </div>
         <form id="connection-form" hidden>
           <div id="meta-connection-fields" hidden>
             <p>Use a Page access token authorized for Peak’s Meta app. Peak verifies the Page and form, then subscribes to new lead notifications. The token is encrypted and never shown again.</p>

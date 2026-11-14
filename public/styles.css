@@ -2055,3 +2055,10 @@ body:not([data-page="dashboard"]) .dashboard-preview > .follow-up-card {
 .connection-panel .secondary-button { margin: 10px 8px 0 0; cursor: pointer; }
 .connection-panel #connection-status { color: var(--text); padding: 14px; border: 1px solid var(--line); border-radius: 10px; }
 .connection-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+
+/* Facebook connection picker */
+#meta-oauth { display: grid; gap: 14px; margin: 20px 0; }
+#meta-oauth[hidden], #meta-picker[hidden] { display: none; }
+#meta-picker { display: grid; gap: 16px; }
+#meta-picker label { display: grid; gap: 8px; color: var(--muted, #9caebe); }
+#meta-picker select { width: 100%; padding: 12px; border: 1px solid #2b3540; border-radius: 10px; background: #0e1318; color: #eef3f8; font: inherit; }
