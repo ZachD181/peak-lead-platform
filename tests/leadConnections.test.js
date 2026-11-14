@@ -3,16 +3,16 @@ const {createRequire}=require('node:module');
 const root=process.env.PEAK_TEST_ROOT||path.resolve(__dirname,'..');
 const localRequire=createRequire(path.join(root,'package.json'));
 const campaignId='11111111-1111-4111-8111-111111111111',connectionId='22222222-2222-4222-8222-222222222222';
-function setup({provider='google',role='owner',status='active',campaignExists=true,metaForm='300',fetchError=false}={}) {
+function setup({provider='google',role='owner',status='active',campaignExists=true,metaForm='300',fetchError=false,configuredMeta=true,subscribeFailure=false}={}) {
   const saved=[],seen=new Map(),stats={fetches:0,verified:0};
   let connection;
   const repository={getUserById:async()=>({role}),getCampaignsByClient:async()=>campaignExists?[{id:campaignId,name:'Peak launch',source:provider==='google'?'Google Ads':'Facebook'}]:[],
     getClientById:async()=>({id:'client-a',status:'active',subscriptionStatus:status}),getScoringRulesByClient:async()=>null};
-  const store={getById:async()=>connection,getByCampaign:async()=>connection,markVerified:async()=>stats.verified++,markError:async()=>{},save:async input=>({id:connectionId,provider:input.provider,secrets_encrypted:input.encrypted}),
+  const store={getById:async()=>connection,getByCampaign:async()=>connection,markVerified:async()=>stats.verified++,markError:async()=>{},save:async input=>{stats.stored=input;return {id:connectionId,provider:input.provider,secrets_encrypted:input.encrypted};},
     deliver:async(conn,id,lead,isTest)=>{if(seen.has(id))return {duplicate:true,leadId:seen.get(id)};seen.set(id,lead.id);saved.push({lead,isTest});return {duplicate:false,leadId:lead.id};}};
   const module={exports:{}};
-  const fetchImpl=async url=>{stats.fetches++;assert.equal(url.origin,'https://graph.facebook.com');return {ok:!fetchError,json:async()=>({id:'400',form_id:metaForm,field_data:[{name:'full_name',values:['Meta Test']},{name:'email',values:['meta@example.invalid']}]})};};
-  const context=vm.createContext({module,exports:module.exports,Buffer,URL,AbortSignal,fetch:fetchImpl,console:{error(){}},process:{env:{LEAD_CONNECTION_ENCRYPTION_KEY:'a'.repeat(64),APP_URL:'https://peak.example'}},require(name){
+  const fetchImpl=async url=>{url=new URL(url);stats.fetches++;assert.equal(url.origin,'https://graph.facebook.com');if(url.pathname.endsWith('/subscribed_apps'))return {ok:!subscribeFailure,json:async()=>({success:!subscribeFailure})};if(['/v25.0/200','/v25.0/300'].includes(url.pathname))return {ok:true,json:async()=>({id:url.pathname.split('/').pop()})};return {ok:!fetchError,json:async()=>({id:'400',form_id:metaForm,field_data:[{name:'full_name',values:['Meta Test']},{name:'email',values:['meta@example.invalid']}]})};};
+  const context=vm.createContext({module,exports:module.exports,Buffer,URL,URLSearchParams,AbortSignal,fetch:fetchImpl,console:{error(){}},process:{env:{LEAD_CONNECTION_ENCRYPTION_KEY:'a'.repeat(64),APP_URL:'https://peak.example',META_APP_SECRET:configuredMeta?'b'.repeat(32):''}},require(name){
     if(name==='./repository')return repository;if(name==='./connectionRepository')return store;
     return localRequire(name.startsWith('./')?'./lib/'+name.slice(2):name);
   }});
@@ -84,6 +84,24 @@ test('another tenant campaign is not accessible',async()=>{
 });
 test('owner connection response never returns the Meta Page token or app secret',async()=>{
   const s=setup({provider:'meta'}),r=await s.request({method:'GET',url:`/api/campaigns/${campaignId}/connection`});
-  assert.equal(r.status,200);assert.equal(r.body.connection.verificationKey,'private-test-key');
+  assert.equal(r.status,200);assert.equal(r.body.connection.verificationKey,undefined);
   assert.ok(!JSON.stringify(r.body).includes('private-page-token'));assert.ok(!JSON.stringify(r.body).includes('b'.repeat(32)));
+});
+
+test('Meta setup uses the server secret and subscribes the verified Page',async()=>{
+  const s=setup({provider:'meta'});
+  const r=await s.request({url:`/api/campaigns/${campaignId}/connection`,body:{pageId:'200',formId:'300',pageToken:'fake-page-token-for-tests-only',appSecret:'ignored-user-input'}});
+  assert.equal(r.status,201);assert.equal(s.stats.fetches,3);
+  assert.equal(s.lib.decrypt(s.stats.stored.encrypted).appSecret,'b'.repeat(32));
+  assert.equal(r.body.connection.verificationKey,undefined);
+});
+test('Meta setup cannot use a customer-supplied app secret when server configuration is missing',async()=>{
+  const s=setup({provider:'meta',configuredMeta:false});
+  const r=await s.request({url:`/api/campaigns/${campaignId}/connection`,body:{pageId:'200',formId:'300',pageToken:'fake-page-token-for-tests-only',appSecret:'c'.repeat(32)}});
+  assert.equal(r.status,503);assert.equal(s.stats.fetches,0);
+});
+test('Meta setup does not report success if Page subscription fails',async()=>{
+  const s=setup({provider:'meta',subscribeFailure:true});
+  const r=await s.request({url:`/api/campaigns/${campaignId}/connection`,body:{pageId:'200',formId:'300',pageToken:'fake-page-token-for-tests-only'}});
+  assert.equal(r.status,400);assert.equal(s.stats.stored,undefined);
 });

@@ -25,7 +25,9 @@ function showConnection(info) {
   document.getElementById('connection-save').textContent=info?'Replace Connection (changes verification key)':'Create Connection';
   if(!info){connectionStatus.textContent='Not connected. Create a connection below, then finish setup in your ad platform.';return;}
   document.getElementById('connection-url').value=info.webhookUrl;
-  document.getElementById('connection-key').value=info.verificationKey;
+  document.getElementById('connection-key').value=info.verificationKey||'';
+  document.getElementById('connection-key').closest('label').hidden=info.provider==='meta';
+  for (const id of ['copy-connection-key','show-connection-key']) document.getElementById(id).hidden=info.provider==='meta';
   document.getElementById('connection-page').value=info.pageId||'';
   document.getElementById('connection-meta-form').value=info.formId||'';
   connectionStatus.textContent=info.lastReceivedAt?'Lead received '+new Date(info.lastReceivedAt).toLocaleString()+'. Open Dashboard to review it.':
@@ -51,10 +53,9 @@ connectionForm.addEventListener('submit',async event=>{
     const info=await connectionRequest('POST',{
       pageId:document.getElementById('connection-page').value.trim(),
       formId:document.getElementById('connection-meta-form').value.trim(),
-      appSecret:document.getElementById('connection-app-secret').value.trim(),
       pageToken:document.getElementById('connection-page-token').value.trim(),
     });
-    document.getElementById('connection-app-secret').value='';document.getElementById('connection-page-token').value='';
+    document.getElementById('connection-page-token').value='';
     showConnection(info);
   }catch(error){connectionStatus.textContent=error.message;}finally{button.disabled=false;}
 });

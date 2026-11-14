@@ -192,10 +192,9 @@
         <p id="connection-status" role="status" aria-live="polite"></p>
         <form id="connection-form" hidden>
           <div id="meta-connection-fields" hidden>
-            <p>Meta requires a developer app and a Page access token with lead-retrieval access. Credentials are encrypted and never shown again.</p>
+            <p>Use a Page access token authorized for Peak’s Meta app. Peak verifies the Page and form, then subscribes to new lead notifications. The token is encrypted and never shown again.</p>
             <label>Facebook Page ID<input id="connection-page" inputmode="numeric" pattern="[0-9]+" autocomplete="off" /></label>
             <label>Instant Form ID<input id="connection-meta-form" inputmode="numeric" pattern="[0-9]+" autocomplete="off" /></label>
-            <label>Meta app secret<input id="connection-app-secret" type="password" autocomplete="new-password" /></label>
             <label>Page access token<input id="connection-page-token" type="password" autocomplete="new-password" /></label>
           </div>
           <button id="connection-save" class="primary-button" type="submit">Create Connection</button>
@@ -214,7 +213,7 @@
           </div>
           <div id="meta-connection-steps" hidden>
             <h3>Finish in Meta</h3>
-            <ol><li>In your Meta developer app, add a Page webhook using the Webhook URL and Private verification key as the Verify token.</li><li>Subscribe to the Page’s leadgen field, and install the app on the Page.</li><li>Grant the Page token the required lead access and allow the app to retrieve the selected Instant Form’s leads.</li><li>Use Meta’s Lead Ads Testing Tool to create a test lead for this Page and form.</li><li>Refresh status here, then open Dashboard to see the captured lead.</li></ol>
+            <ol><li>Peak’s app webhook is configured centrally. The saved connection subscribes your Page to leadgen notifications.</li><li>Use Meta’s Lead Ads Testing Tool to create a test lead for this Page and form.</li><li>Refresh status here, then open Dashboard to see the captured lead.</li></ol>
             <p>Receiving a verification challenge is only the first step. A lead must arrive before this connection is proven end to end. Meta may require app review for customers outside your app’s roles.</p>
             <a href="https://developers.facebook.com/tools/lead-ads-testing" target="_blank" rel="noopener noreferrer">Open Meta’s Lead Ads Testing Tool</a>
           </div>
