@@ -216,9 +216,22 @@
           <button id="copy-connection-key" class="secondary-button" type="button">Copy Key</button>
           <button id="show-connection-key" class="secondary-button" type="button">Show key</button>
           <div id="google-connection-steps" hidden>
-            <h3>Finish in Google Ads</h3>
-            <ol><li>Open the campaign’s lead form asset in Google Ads.</li><li>In lead delivery, paste the Webhook URL and use the Private verification key as the Google key.</li><li>Make the form collect an email address or phone number, plus the lead’s name.</li><li>Click Google’s Send test data button, then refresh this connection’s status.</li></ol>
-            <p>Google test leads are labeled in their activity history. The same delivery received twice creates only one lead.</p>
+            <h3>Connect a Google Ads lead form</h3>
+            <p>This is a manual lead-form connection. You do not need to share your Google password with Peak.</p>
+            <ol>
+              <li>In your Google Ads account, open the lead form asset you want to connect. Your account must be eligible to use lead forms.</li>
+              <li>Open the form’s lead delivery or webhook settings. Paste Peak’s <strong>Webhook URL</strong> into the Webhook URL field.</li>
+              <li>Paste Peak’s <strong>Private verification key</strong> into the Google key field. Keep it private.</li>
+              <li>Have the form collect a name and an email address or phone number. Use your own business’s privacy-policy URL.</li>
+              <li>Use Google’s <strong>Send test data</strong> button. Check for success in Google, then open Peak’s Dashboard and confirm the test lead’s details and campaign.</li>
+            </ol>
+            <p>Each connection sends leads to this Peak campaign. Use its own URL and key for every form intended for this campaign. This does not import past leads or connect website contact forms.</p>
+            <p><a href="https://support.google.com/adspolicy/answer/9472930?hl=en" target="_blank" rel="noopener noreferrer">Check Google’s lead-form requirements</a></p>
+            <h3>Try Peak without an ad account</h3>
+            <p>Add one fictional test lead to this campaign. This sends a simulated Google-style submission directly to Peak. It does not contact Google, launch ads, or prove Google delivery.</p>
+            <button id="google-simulate" class="primary-button" type="button">Send simulated test lead</button>
+            <p id="google-test-status" role="status" aria-live="polite"></p>
+            <p>Test leads are labeled in their activity history. Repeated delivery of the same lead ID creates only one lead.</p>
             <a href="https://developers.google.com/google-ads/webhook/docs/testing" target="_blank" rel="noopener noreferrer">Google’s lead-form test guide</a>
           </div>
           <div id="meta-connection-steps" hidden>

@@ -26,8 +26,8 @@ function showConnection(info) {
   document.getElementById('meta-connect').textContent=info?'Reconnect Facebook':'Connect Facebook';
   document.getElementById('meta-disconnect').hidden=provider!=='meta'||!info;
   document.querySelectorAll('#meta-connection-fields input').forEach(input=>{input.required=false;});
-  document.getElementById('connection-save').textContent=info?'Replace Connection (changes verification key)':'Create Connection';
-  if(!info){connectionStatus.textContent='Not connected. Create a connection below, then finish setup in your ad platform.';return;}
+  document.getElementById('connection-save').textContent=info?'Replace connection and key':provider==='google'?'Get Google setup details':'Create Connection';
+  if(!info){connectionStatus.textContent=provider==='google'?'Get your setup URL and key, then paste them into your Google Ads lead form. No Google password or ad spending is needed to generate these details.':'Connect Facebook to choose your Page and lead form.';return;}
   document.getElementById('connection-url').value=info.webhookUrl;
   document.getElementById('connection-key').value=info.verificationKey||'';
   document.getElementById('connection-key').closest('label').hidden=info.provider==='meta';
@@ -36,6 +36,9 @@ function showConnection(info) {
   document.getElementById('connection-meta-form').value=info.formId||'';
   connectionStatus.textContent=info.lastReceivedAt?'Lead received '+new Date(info.lastReceivedAt).toLocaleString()+'. Open Dashboard to review it.':
     info.verifiedAt?'Webhook verified. Waiting for the first lead.':'Setup created. Waiting for the ad platform to verify or send its first lead.';
+  if(provider==='google')connectionStatus.textContent=info.lastReceivedAt
+    ? (info.lastDeliveryIsTest?'Test payload received ':'Lead received ')+new Date(info.lastReceivedAt).toLocaleString()+'. '+(info.lastDeliveryIsTest?'Check the lead in Dashboard. A simulated test does not confirm Google delivery; run Send test data inside Google Ads separately.':'Open Dashboard to review it.')
+    : 'Setup details ready. Paste the URL and key into your Google Ads lead form, then use Google’s Send test data button.';
   if(info.lastError)connectionStatus.textContent+=' Last delivery issue: '+info.lastError;
 }
 async function openConnection(campaign) {
@@ -139,4 +142,19 @@ document.getElementById('meta-disconnect').addEventListener('click',async()=>{
   if(!window.confirm('Disconnect this campaign from Facebook? New leads will stop importing. Existing leads stay in Peak.'))return;
   try{await metaRequest('disconnect','POST',{});showConnection(null);metaPicker.hidden=true;connectionStatus.textContent='Disconnected. Existing leads have been kept.';}
   catch(error){connectionStatus.textContent=error.message;}
+});
+
+document.getElementById('google-simulate').addEventListener('click',async event=>{
+  const info=currentConnection,campaign=selectedCampaign,status=document.getElementById('google-test-status');
+  if(info?.provider!=='google'||!info.verificationKey)return;
+  event.target.disabled=true;status.textContent='Sending a fictional test lead to Peak…';
+  const payload={lead_id:'peak-simulated-'+crypto.randomUUID(),google_key:info.verificationKey,is_test:true,api_version:'1.0',lead_submit_time:new Date().toISOString(),
+    user_column_data:[{column_id:'FULL_NAME',string_value:'Peak Google Test (simulated)'},{column_id:'EMAIL',string_value:'google-test@example.invalid'},{column_id:'PHONE_NUMBER',string_value:'+12025550123'}]};
+  try{
+    const response=await fetch('/api/lead-connections/'+encodeURIComponent(info.id)+'/webhook',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const data=await response.json();if(!response.ok)throw new Error(data.error||'Test lead could not be received.');
+    if(selectedCampaign?.id!==campaign.id)return;
+    showConnection(await connectionRequest());
+    status.textContent='Simulated test lead received. Open Dashboard to review it. Google delivery has not been tested by this action.';
+  }catch(error){status.textContent=error.message;}finally{event.target.disabled=false;}
 });

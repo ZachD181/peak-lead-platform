@@ -38,3 +38,19 @@ Billing, company/scoring changes, campaign creation, and team administration are
 owner-only. Team members can work with their company's leads.
 Preview invitation links use the stable META_OAUTH_REDIRECT_URI origin when configured;
 otherwise APP_URL is required. Invitation acceptance is /accept-invite.html#token=... .
+
+
+### Free Google lead-form checks
+
+Dashboard > Set up Google Ads opens a matching campaign or guides creation of a
+Google Ads campaign in Peak. Generate setup details and paste its URL/key into
+the customer's own Google Ads lead form. This is manual webhook setup, not OAuth
+account linking, and does not import existing leads or website contact forms.
+Google eligibility, privacy-policy requirements, and billing remain Google's responsibility.
+
+Send simulated test lead adds a fictional lead directly through Peak's public
+webhook using the authorized connection key and is_test=true. It does not call
+Google or prove Google-originated delivery. Test-payload status explicitly keeps
+that distinction visible. Before declaring the integration ready for customers,
+use Send test data in Google's form builder and verify fields and campaign in Peak.
+Keep this flow in Preview until that provider-originated check passes.

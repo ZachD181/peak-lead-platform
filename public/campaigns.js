@@ -179,15 +179,16 @@ async function loadCampaigns() {
     const requested=params.get('connect');
     const selected=(data.campaigns||[]).find(c=>c.id===requested);
     if(selected)await openConnection(selected);
-    else if(params.get('platform')==='facebook') {
-      const metaCampaigns=(data.campaigns||[]).filter(c=>['Facebook','Instagram'].includes(c.source));
+    else if(['facebook','google'].includes(params.get('platform'))) {
+      const googleSetup=params.get('platform')==='google';
+      const metaCampaigns=(data.campaigns||[]).filter(c=>googleSetup?c.source==='Google Ads':['Facebook','Instagram'].includes(c.source));
       if(metaCampaigns.length===1)await openConnection(metaCampaigns[0]);
       else if(metaCampaigns.length>1) {
-        campaignMessage.textContent='Choose your Facebook or Instagram campaign below and click Connect Lead Form.';
+        campaignMessage.textContent='Choose your '+(googleSetup?'Google Ads':'Facebook or Instagram')+' campaign below and click Connect Lead Form.';
         document.getElementById('campaign-list-section').scrollIntoView({behavior:'smooth',block:'start'});
       } else {
-        document.getElementById('campaign-source').value='Facebook';
-        campaignMessage.textContent='Create a Facebook campaign below, then connect its Page and lead form. A budget of $0 is fine for testing. Creating a Peak campaign does not launch an ad.';
+        document.getElementById('campaign-source').value=googleSetup?'Google Ads':'Facebook';
+        campaignMessage.textContent=googleSetup?'Create a Google Ads campaign in Peak, then get its lead-form setup URL and key. A budget of $0 is fine for testing. This does not create or launch an ad in Google.':'Create a Facebook campaign below, then connect its Page and lead form. A budget of $0 is fine for testing. Creating a Peak campaign does not launch an ad.';
         campaignForm.scrollIntoView({behavior:'smooth',block:'start'});
         document.getElementById('campaign-name').focus();
       }

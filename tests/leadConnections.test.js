@@ -118,3 +118,21 @@ test('replayed signed Meta event returns the original lead without another impor
   assert.equal(replay.body.deliveries[0].duplicate,true);
   assert.equal(replay.body.deliveries[0].leadId,first.body.deliveries[0].leadId);
 });
+
+test('Google payload ignores unknown fields and maps first and last name',async()=>{
+  const s=setup(),r=await s.request({body:google({future_field:{ignored:true},user_column_data:[{column_id:'FIRST_NAME',string_value:'Alex'},{column_id:'LAST_NAME',string_value:'Test'},{column_id:'EMAIL',string_value:'Alex@Example.invalid'}]})});
+  assert.equal(r.status,200);assert.equal(s.saved[0].lead.name,'Alex Test');assert.equal(s.saved[0].lead.email,'alex@example.invalid');
+});
+test('Google dummy email is accepted only for test payloads',async()=>{
+  const s=setup();assert.equal((await s.request({body:google({user_column_data:[{column_id:'EMAIL',string_value:'dummy_value'}]})})).status,200);
+  assert.equal(s.saved[0].lead.email,'google-test@example.invalid');
+  assert.equal((await s.request({body:google({is_test:false,lead_id:'real-invalid',user_column_data:[{column_id:'EMAIL',string_value:'dummy_value'}]})})).status,400);
+});
+test('Google missing event ID or contact fields never creates a lead',async()=>{
+  const s=setup();assert.equal((await s.request({body:google({lead_id:''})})).status,400);
+  assert.equal((await s.request({body:google({user_column_data:[]})})).status,400);assert.equal(s.saved.length,0);
+});
+test('Google preserves click attribution and does not mark ordinary payloads as test leads',async()=>{
+  const s=setup(),r=await s.request({body:google({is_test:false,gcl_id:'example-click-id',lead_submit_time:'2026-11-15T01:00:00Z'})});
+  assert.equal(r.status,200);assert.equal(s.saved[0].isTest,false);assert.equal(s.saved[0].lead.gclid,'example-click-id');assert.equal(s.saved[0].lead.firstVisit,'2026-11-15T01:00:00.000Z');
+});
