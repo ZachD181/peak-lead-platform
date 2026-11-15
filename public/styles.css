@@ -2143,3 +2143,9 @@ body:not([data-page="dashboard"]) .dashboard-preview > .follow-up-card {
 .launch-availability { color: var(--muted); padding: 20px; margin-bottom: 32px; border: 1px solid var(--line); border-radius: var(--radius); }
 
 #campaign-form label[hidden] { display: none; }
+
+.lead-assignee { display: block; color: var(--muted); font-size: 12px; font-weight: 400; line-height: 1.45; overflow-wrap: anywhere; }
+.lead-row > .lead-assignee { grid-column: 1 / -1; margin-top: 2px; }
+#brief-first-call .lead-assignee { font-size: 12px; margin: 8px 0 0; }
+.morning-call-summary { display: block; }
+.morning-call .lead-assignee { margin-top: 6px; }

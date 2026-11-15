@@ -767,6 +767,7 @@ row.setAttribute(
           lead.recommendedAction
         )}
       </div>
+      <small class="lead-assignee">Assigned to: ${escapeHtml(leadAssigneeName(lead))}</small>
     `;
 
     row.addEventListener("click", () => {
@@ -903,6 +904,10 @@ function renderCampaignPerformance(leads) {
     )
     .join("");
 }
+function leadAssigneeName(lead) {
+  if (!lead.assignedUserId) return 'Unassigned';
+  return pipelineUsers.find(user => user.id === lead.assignedUserId)?.name || 'Inactive team member';
+}
 function renderMorningBrief(leads) {
   if(!document.getElementById('brief-new'))return;
   const plan=buildMorningPlan(leads);
@@ -913,14 +918,17 @@ function renderMorningBrief(leads) {
   const sources=new Map();for(const lead of plan.recent)sources.set(lead.source,(sources.get(lead.source)||0)+1);
   document.getElementById('brief-source').textContent=[...sources].sort((a,b)=>b[1]-a[1])[0]?.[0]||'—';
   const first=plan.queue[0],firstElement=document.getElementById('brief-first-call');
-  firstElement.innerHTML=first?'<h3>'+escapeHtml(first.name)+' <span class="brief-score">'+Number(first.score||0)+'</span></h3><p>'+escapeHtml(first.recommendedAction||'Review this lead and plan your next contact.')+'</p>':'<h3>No calls due</h3><p>Your active leads have no calls waiting in this list.</p>';
+  firstElement.innerHTML=first?'<h3>'+escapeHtml(first.name)+' <span class="brief-score">'+Number(first.score||0)+'</span></h3><p>'+escapeHtml(first.recommendedAction||'Review this lead and plan your next contact.')+'</p><p class="lead-assignee">Assigned to: '+escapeHtml(leadAssigneeName(first))+'</p>':'<h3>No calls due</h3><p>Your active leads have no calls waiting in this list.</p>';
   const list=document.getElementById('morning-call-list');list.replaceChildren();
   if(!plan.queue.length){list.textContent='Connect a source above to bring new inquiries into Peak automatically.';return;}
   for(const lead of plan.queue.slice(0,12)){
     const button=document.createElement('button');button.type='button';button.className='morning-call';
     const due=Date.parse(lead.nextFollowUp),reason=due<Date.now()?'Overdue follow-up':Number.isFinite(due)&&due<=new Date().setHours(23,59,59,999)?'Follow-up today':lead.stage==='New'?'New lead':'Needs a next step';
-    const assignee=pipelineUsers.find(u=>u.id===lead.assignedUserId)?.name||'Unassigned';
-    button.textContent=lead.name+' · '+reason+' · '+(lead.source||'Direct')+' · '+assignee+' · Score '+Number(lead.score||0);
+    const summary=document.createElement('span');summary.className='morning-call-summary';
+    summary.textContent=lead.name+' · '+reason+' · '+(lead.source||'Direct')+' · Score '+Number(lead.score||0);
+    const assignment=document.createElement('small');assignment.className='lead-assignee';
+    assignment.textContent='Assigned to: '+leadAssigneeName(lead);
+    button.append(summary,assignment);
     button.addEventListener('click',()=>openLeadManager(lead));list.append(button);
   }
 }
