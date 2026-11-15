@@ -2141,3 +2141,5 @@ body:not([data-page="dashboard"]) .dashboard-preview > .follow-up-card {
 #peak-contact-frame[hidden] { display: none; }
 
 .launch-availability { color: var(--muted); padding: 20px; margin-bottom: 32px; border: 1px solid var(--line); border-radius: var(--radius); }
+
+#campaign-form label[hidden] { display: none; }

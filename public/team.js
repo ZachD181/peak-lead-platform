@@ -39,7 +39,7 @@ function renderTeam(){
     teamList.append(row);
   }
 }
-async function loadTeam(){const data=await teamRequest();teamUsers=data.users;renderTeam();document.getElementById('team-invite-card').hidden=false;document.getElementById('team-list-card').hidden=false;teamStatus.textContent='Only your account owner can manage this team.';}
+async function loadTeam(){const data=await teamRequest();teamUsers=data.users;renderTeam();document.getElementById('team-invite-card').hidden=false;document.getElementById('team-list-card').hidden=false;teamStatus.textContent='Manage your team below. Active members are available for lead assignment.';}
 document.getElementById('team-add').addEventListener('submit',async event=>{
   event.preventDefault();const form=event.target,button=form.querySelector('button');button.disabled=true;teamStatus.textContent='Creating invitation…';
   try{const data=await teamRequest('','POST',{name:form.elements.name.value.trim(),email:form.elements.email.value.trim()});form.reset();await loadTeam();showInvitation(data);teamStatus.textContent='Invitation ready. The member will appear in Assigned to after accepting it.';}

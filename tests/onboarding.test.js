@@ -1,0 +1,5 @@
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+const source=fs.readFileSync(path.join(__dirname,'../public/app.js'),'utf8');const start=source.indexOf('function updateOnboardingChecklist('),end=source.indexOf('async function loadDashboard()',start);
+function render(leads,activities){const nodes={};const context={pipelineActivities:activities,document:{getElementById(id){return nodes[id]??={textContent:'',hidden:false};}}};vm.runInNewContext(source.slice(start,end),context);context.updateOnboardingChecklist(leads);return nodes;}
+test('completed first follow-up keeps customer onboarding complete',()=>{const nodes=render([{nextFollowUp:null}],[{type:'Follow-Up Completed'}]);assert.equal(nodes['onboarding-progress'].textContent,'3 of 3 steps complete');assert.equal(nodes['onboarding-checklist'].hidden,true);});
+test('new customer still needs a first follow-up',()=>{const nodes=render([{nextFollowUp:null}],[{type:'Captured'}]);assert.equal(nodes['onboarding-progress'].textContent,'2 of 3 steps complete');assert.equal(nodes['onboarding-checklist'].hidden,false);});

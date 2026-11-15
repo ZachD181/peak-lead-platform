@@ -345,7 +345,7 @@ function updateOnboardingChecklist(leads) {
 
   const hasFollowUp = leads.some(
     (lead) => Boolean(lead.nextFollowUp)
-  );
+  ) || pipelineActivities.some(activity => activity.type === 'Follow-Up Completed');
 
   const completed = 1 +
     Number(hasLead) +
