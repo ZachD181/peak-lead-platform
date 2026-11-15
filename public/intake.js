@@ -13,6 +13,7 @@ function renderIntake(info){
   document.getElementById('intake-form-url').value=info.formUrl;
   document.getElementById('intake-embed').value='<iframe src="'+info.formUrl+'" title="Contact form" width="100%" height="780" style="border:0" loading="lazy" referrerpolicy="no-referrer"></iframe>';
   document.getElementById('intake-preview').href=info.formUrl;
+  document.getElementById('intake-embed-preview').href='/embed-preview.html?form='+encodeURIComponent(info.id);
   document.getElementById('intake-url').value=info.webhookUrl;document.getElementById('intake-key').value=info.key||'';
   const sample={eventId:'unique-submission-id',name:'Alex Example',email:'alex@example.com',phone:'+12025550123',notes:'Interested in your services',isTest:true};
   document.getElementById('intake-example').value=JSON.stringify(sample,null,2);
