@@ -2249,6 +2249,12 @@ module.exports = async function handler(req, res) {
       req.url,
       "http://localhost"
     );
+    if(req.method==='GET'&&url.pathname==='/api/site-config')return sendJson(res,200,require('../lib/releaseConfig').siteConfig());
+    if(req.method==='GET'&&url.pathname==='/api/admin/inquiries'){
+      const admin=await requirePeakAdmin(req,res);if(!admin)return;
+      const clientId=process.env.PEAK_INBOX_CLIENT_ID;
+      return sendJson(res,200,{leads:clientId?await getLeadsByClient(clientId):[]});
+    }
     if(url.pathname.startsWith('/api/intake/')||url.pathname.startsWith('/api/website-forms/')||url.pathname.endsWith('/intake')) {
       if(await handleIntake(req,res,url))return;
     }

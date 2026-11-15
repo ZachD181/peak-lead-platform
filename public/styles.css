@@ -2137,3 +2137,5 @@ body:not([data-page="dashboard"]) .dashboard-preview > .follow-up-card {
 .peak-contact a { color: var(--accent); text-decoration: underline; }
 .peak-contact iframe { border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg); min-width: 0; }
 @media(max-width: 760px) { .peak-contact { grid-template-columns: 1fr; gap: 16px; } }
+
+#peak-contact-frame[hidden] { display: none; }

@@ -9,7 +9,7 @@ function setup({provider='website',role='owner',validCampaign=true,status='activ
     if(name==='./leadConnections')return {encrypt:()=> 'private-encrypted',decrypt:()=>({key:'private-key',privacyUrl:'https://business.example/privacy'}),equal:(a,b)=>a===b};
     if(name==='./scoring')return {calculateLeadScore:()=>({score:55,tier:'Qualified'})};
     if(name==='./billingValidation')return {hasValidTrial:()=>false};
-    return require(name);
+    if(name==='./releaseConfig')return require('../lib/releaseConfig');return require(name);
   }});
   const handler=module.exports.createHandler({requireActiveSubscription:async()=>({userId:'owner',clientId:'tenant'}),readBody:async req=>req.body,readRawBody:async req=>Buffer.from(JSON.stringify(req.body)),sendJson(res,status,body){res.status=status;res.body=body;}});
   return {saved,async request({method='POST',url='/api/website-forms/'+id,body={eventId:'one',name:'Alex',email:'alex@example.invalid'},authorization='Bearer private-key'}={}){

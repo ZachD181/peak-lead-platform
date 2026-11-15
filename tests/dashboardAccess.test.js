@@ -8,10 +8,11 @@ const { EventEmitter } = require('node:events');
 const root = process.env.PEAK_TEST_ROOT || path.resolve(__dirname, '..');
 const projectRequire = createRequire(path.join(root, 'package.json'));
 
-function api({ session = {userId:'user-a', clientId:'client-a'}, client, subscription, stripeError } = {}) {
+function api({ session = {userId:'user-a', clientId:'client-a'}, client, subscription, stripeError, role='owner' } = {}) {
   const reads = [];
   const repository = new Proxy({
     getSession: async () => session,
+    getUserById: async () => ({role,status:'active'}),
     getClientById: async id => { assert.equal(id, 'client-a'); return client; },
     getLeadsByClient: async id => { reads.push(id); return []; },
     getActivitiesByClient: async id => { reads.push(id); return []; },
@@ -28,9 +29,9 @@ function api({ session = {userId:'user-a', clientId:'client-a'}, client, subscri
     },
   });
   vm.runInContext(fs.readFileSync(path.join(root,'api/index.js'),'utf8'), context);
-  return { reads, async request() {
+  return { reads, async request(url='/api/pipeline') {
     const req = new EventEmitter();
-    Object.assign(req,{method:'GET',url:'/api/pipeline',headers:{host:'localhost:3000',cookie:'peak_session=test-only'}});
+    Object.assign(req,{method:'GET',url,headers:{host:'localhost:3000',cookie:'peak_session=test-only'}});
     let status, body;
     await module.exports(req,{setHeader(){},writeHead(code){status=code;},end(data){body=JSON.parse(data);}});
     return {status,body};
@@ -90,3 +91,7 @@ for (const [role,destination] of [['customer','/dashboard.html'],['peak_admin','
   await submit({preventDefault(){}});
   assert.equal(context.window.location.href,destination);
 });
+
+test('public visitors cannot read Peak inquiries',async()=>{const s=api({session:null});assert.equal((await s.request('/api/admin/inquiries')).status,401);assert.deepEqual(s.reads,[]);});
+test('customer owners cannot read Peak inquiries',async()=>{const s=api({role:'owner'});assert.equal((await s.request('/api/admin/inquiries')).status,403);assert.deepEqual(s.reads,[]);});
+test('Peak administrator can open the inquiry inbox',async()=>{const s=api({role:'peak_admin',session:{userId:'admin',clientId:null}});assert.equal((await s.request('/api/admin/inquiries')).status,200);});

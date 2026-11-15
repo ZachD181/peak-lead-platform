@@ -22,7 +22,7 @@ function setup({role='owner',owner=true,validFlow=true,failSubscribe=false,confi
       if(name==='./repository')return {getPool:()=>db,getUserById:async()=>({role}),getCampaignsByClient:async()=>owner?[{id:campaign,source:'Facebook'}]:[]};
       if(name==='./connectionRepository')return {save:async input=>{stats.saved.push(input);return {...input,id:'connection'};}};
       if(name==='./leadConnections')return {encrypt:x=>'encrypted:'+JSON.stringify(x),decrypt:x=>JSON.parse(x.slice(10)),publicInfo:x=>({id:x.id,provider:x.provider})};
-      return require(name);
+      if(name==='./releaseConfig')return require('../lib/releaseConfig');return require(name);
     }};
   vm.runInNewContext(fs.readFileSync(path.join(process.env.PEAK_TEST_ROOT||path.resolve(__dirname,'..'),'lib/metaOAuth.js'),'utf8'),context);
   const handler=module.exports.createHandler({requireActiveSubscription:async()=>({userId:'owner',clientId:'tenant'}),readBody:async req=>req.body,sendJson(res,status,body){res.status=status;res.body=body;},fetchImpl:async(url,options)=>{

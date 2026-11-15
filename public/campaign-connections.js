@@ -42,6 +42,8 @@ function showConnection(info) {
   if(info.lastError)connectionStatus.textContent+=' Last delivery issue: '+info.lastError;
 }
 async function openConnection(campaign) {
+  const config=await window.peakSiteConfig;
+  if(config&&!config.adConnectionsEnabled){panel.hidden=false;connectionTitle.textContent='Ad connections coming soon';connectionStatus.textContent='Facebook/Instagram approval and Google delivery verification are still in progress. Use a Website form or Custom webhook campaign today.';connectionForm.hidden=true;connectionValues.hidden=true;metaOAuth.hidden=true;metaPicker.hidden=true;panel.scrollIntoView({behavior:'smooth'});return;}
   document.getElementById('intake-panel').hidden=true;selectedCampaign=campaign;panel.hidden=false;connectionTitle.textContent='Connect '+campaign.name;
   connectionStatus.textContent='Loading connection…';connectionForm.hidden=true;connectionValues.hidden=true;
   try{const info=await connectionRequest();showConnection(info);

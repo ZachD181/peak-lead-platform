@@ -75,3 +75,8 @@ Morning call list uses the viewer's local day: overdue first, scheduled calls du
 today, new leads by score, then active unscheduled leads. Won/lost/closed records
 are excluded. Dashboard data is fetched on page load or refresh; this is not an
 outbound calling service and no scheduled morning email is promised.
+
+### Production release
+Apply the four 20261113–20261115 migrations before deploying. Production requires its own LEAD_CONNECTION_ENCRYPTION_KEY; never copy test connection rows. APP_URL must be https://www.peakleadplatform.com.
+PUBLIC_CONTACT_FORM_ID selects the public homepage form. PEAK_INBOX_CLIENT_ID identifies only Peak’s internal marketing inbox (plan=internal), with no customer subscription exemption. Administrators read that inbox at /admin-inquiries.html.
+ENABLE_AD_CONNECTIONS remains false in production until provider approval and delivery checks pass; sandbox stays available for those tests. No payment or subscription is created for Peak’s internal inbox.
