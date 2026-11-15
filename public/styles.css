@@ -2139,3 +2139,5 @@ body:not([data-page="dashboard"]) .dashboard-preview > .follow-up-card {
 @media(max-width: 760px) { .peak-contact { grid-template-columns: 1fr; gap: 16px; } }
 
 #peak-contact-frame[hidden] { display: none; }
+
+.launch-availability { color: var(--muted); padding: 20px; margin-bottom: 32px; border: 1px solid var(--line); border-radius: var(--radius); }
