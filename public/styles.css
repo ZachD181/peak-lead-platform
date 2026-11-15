@@ -2065,3 +2065,25 @@ body:not([data-page="dashboard"]) .dashboard-preview > .follow-up-card {
 
 .connection-panel button.secondary-button { color: var(--text, #eef3f8); }
 #meta-save:disabled { opacity: .5; cursor: not-allowed; }
+
+
+.dashboard-connections {
+  display: flex; align-items: center; justify-content: space-between; gap: 24px;
+  padding: 24px; margin: 0 0 28px; border: 1px solid var(--line);
+  border-radius: var(--radius); background: var(--panel);
+}
+.dashboard-connections h3 { font-size: 1.35rem; margin: 5px 0 8px; }
+.dashboard-connections p:not(.eyebrow) { color: var(--muted); max-width: 560px; }
+.dashboard-connection-actions { display: flex; flex-wrap: wrap; gap: 12px; flex-shrink: 0; }
+.dashboard-connection-actions a { display: inline-flex; align-items: center; justify-content: center; text-align: center; }
+.dashboard-connection-actions .secondary-button { color: var(--text); }
+#campaign-list-section { scroll-margin-top: 24px; }
+.nav-links { flex-wrap: wrap; }
+@media (max-width: 850px) {
+  .dashboard-connections { align-items: flex-start; flex-direction: column; }
+  .dashboard-connection-actions { width: 100%; }
+}
+@media (max-width: 480px) {
+  .dashboard-connection-actions { flex-direction: column; }
+  .dashboard-connection-actions a { width: 100%; }
+}

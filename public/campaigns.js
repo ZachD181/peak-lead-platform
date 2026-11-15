@@ -175,9 +175,23 @@ async function loadCampaigns() {
     renderCampaigns(
       data.campaigns || []
     );
-    const requested=new URLSearchParams(location.search).get('connect');
+    const params=new URLSearchParams(location.search);
+    const requested=params.get('connect');
     const selected=(data.campaigns||[]).find(c=>c.id===requested);
     if(selected)await openConnection(selected);
+    else if(params.get('platform')==='facebook') {
+      const metaCampaigns=(data.campaigns||[]).filter(c=>['Facebook','Instagram'].includes(c.source));
+      if(metaCampaigns.length===1)await openConnection(metaCampaigns[0]);
+      else if(metaCampaigns.length>1) {
+        campaignMessage.textContent='Choose your Facebook or Instagram campaign below and click Connect Lead Form.';
+        document.getElementById('campaign-list-section').scrollIntoView({behavior:'smooth',block:'start'});
+      } else {
+        document.getElementById('campaign-source').value='Facebook';
+        campaignMessage.textContent='Create a Facebook campaign below, then connect its Page and lead form. A budget of $0 is fine for testing. Creating a Peak campaign does not launch an ad.';
+        campaignForm.scrollIntoView({behavior:'smooth',block:'start'});
+        document.getElementById('campaign-name').focus();
+      }
+    }
   } catch (error) {
     campaignList.innerHTML = `
       <p>
