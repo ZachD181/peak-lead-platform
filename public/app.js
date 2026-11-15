@@ -904,109 +904,25 @@ function renderCampaignPerformance(leads) {
     .join("");
 }
 function renderMorningBrief(leads) {
-  const newLeadElement =
-    document.getElementById("brief-new");
-
-  const highElement =
-    document.getElementById("brief-high");
-
-  const sourceElement =
-    document.getElementById("brief-source");
-
-  const firstCallElement =
-    document.getElementById("brief-first-call");
-
-  if (
-    !newLeadElement ||
-    !highElement ||
-    !sourceElement ||
-    !firstCallElement
-  ) {
-    return;
+  if(!document.getElementById('brief-new'))return;
+  const plan=buildMorningPlan(leads);
+  document.getElementById('brief-new').textContent=plan.recent.length;
+  document.getElementById('brief-high').textContent=plan.highPriority.length;
+  document.getElementById('brief-overdue').textContent=plan.overdue.length;
+  document.getElementById('brief-today').textContent=plan.today.length;
+  const sources=new Map();for(const lead of plan.recent)sources.set(lead.source,(sources.get(lead.source)||0)+1);
+  document.getElementById('brief-source').textContent=[...sources].sort((a,b)=>b[1]-a[1])[0]?.[0]||'—';
+  const first=plan.queue[0],firstElement=document.getElementById('brief-first-call');
+  firstElement.innerHTML=first?'<h3>'+escapeHtml(first.name)+' <span class="brief-score">'+Number(first.score||0)+'</span></h3><p>'+escapeHtml(first.recommendedAction||'Review this lead and plan your next contact.')+'</p>':'<h3>No calls due</h3><p>Your active leads have no calls waiting in this list.</p>';
+  const list=document.getElementById('morning-call-list');list.replaceChildren();
+  if(!plan.queue.length){list.textContent='Connect a source above to bring new inquiries into Peak automatically.';return;}
+  for(const lead of plan.queue.slice(0,12)){
+    const button=document.createElement('button');button.type='button';button.className='morning-call';
+    const due=Date.parse(lead.nextFollowUp),reason=due<Date.now()?'Overdue follow-up':Number.isFinite(due)&&due<=new Date().setHours(23,59,59,999)?'Follow-up today':lead.stage==='New'?'New lead':'Needs a next step';
+    const assignee=pipelineUsers.find(u=>u.id===lead.assignedUserId)?.name||'Unassigned';
+    button.textContent=lead.name+' · '+reason+' · '+(lead.source||'Direct')+' · '+assignee+' · Score '+Number(lead.score||0);
+    button.addEventListener('click',()=>openLeadManager(lead));list.append(button);
   }
-
-  const now = Date.now();
-  const twentyFourHours = 24 * 60 * 60 * 1000;
-
-  const recentLeads = leads.filter((lead) => {
-    const created = new Date(lead.createdAt).getTime();
-
-    return (
-      Number.isFinite(created) &&
-      now - created <= twentyFourHours
-    );
-  });
-
-  const highPriority = leads.filter(
-    (lead) => Number(lead.score) >= 75
-  );
-
-  newLeadElement.textContent = recentLeads.length;
-  highElement.textContent = highPriority.length;
-
-  const sourceStats = {};
-
-  leads.forEach((lead) => {
-    const source = lead.source || "Direct";
-
-    if (!sourceStats[source]) {
-      sourceStats[source] = {
-        count: 0,
-        scoreTotal: 0,
-      };
-    }
-
-    sourceStats[source].count += 1;
-    sourceStats[source].scoreTotal +=
-      Number(lead.score || 0);
-  });
-
-  const bestSource = Object.entries(sourceStats)
-    .map(([name, stats]) => ({
-      name,
-      average:
-        stats.scoreTotal / stats.count,
-    }))
-    .sort((a, b) => b.average - a.average)[0];
-
-  sourceElement.textContent =
-    bestSource?.name || "—";
-
-  const firstCall = [...leads].sort(
-    (a, b) =>
-      Number(b.score || 0) -
-      Number(a.score || 0)
-  )[0];
-
-  if (!firstCall) {
-    firstCallElement.innerHTML = `
-      <h3>No leads yet</h3>
-
-      <p>
-        Peak will identify your highest-priority
-        opportunity here.
-      </p>
-    `;
-
-    return;
-  }
-
-  firstCallElement.innerHTML = `
-    <h3>
-      ${escapeHtml(firstCall.name)}
-      <span class="brief-score">
-        ${Number(firstCall.score || 0)}
-      </span>
-    </h3>
-
-    <p>
-      ${escapeHtml(firstCall.recommendedAction)}
-      Source:
-      <strong>${escapeHtml(
-        firstCall.source || "Direct"
-      )}</strong>
-    </p>
-  `;
 }
 async function loadSettings() {
   try {

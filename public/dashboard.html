@@ -107,12 +107,85 @@
           <p>Bring Facebook and Instagram lead-form submissions straight into your pipeline.</p>
         </div>
         <div class="dashboard-connection-actions">
-          <a class="primary-button" href="/campaigns.html?platform=facebook">Connect Facebook</a>
+          <a class="primary-button" href="/campaigns.html?platform=website">Connect your website</a>
+          <a class="secondary-button" href="/campaigns.html?platform=facebook">Connect Facebook</a>
           <a class="secondary-button" href="/campaigns.html?platform=google">Set up Google Ads</a>
           <a class="secondary-button" href="/campaigns.html#campaign-list-section">Manage campaigns</a>
         </div>
       </section>
 
+<section class="morning-section">
+
+  <div class="section-heading">
+    <p class="eyebrow">PEAK MORNING BRIEF</p>
+
+    <h2>Start the day knowing who to call.</h2>
+
+    <p>
+      Peak summarizes your newest opportunities,
+      identifies your strongest lead, and tells your
+      team where to focus first.
+    </p>
+  </div>
+
+  <div id="morning-brief" class="morning-brief">
+
+    <div class="brief-header">
+
+      <div>
+        <p class="eyebrow">TODAY'S PRIORITIES</p>
+        <h3>Good morning.</h3>
+      </div>
+
+      <span class="live-badge">YOUR CURRENT LEADS</span>
+
+    </div>
+
+    <div class="brief-grid"><div class="brief-stat"><span>OVERDUE</span><strong id="brief-overdue">0</strong><small>Follow-ups past due</small></div><div class="brief-stat"><span>DUE TODAY</span><strong id="brief-today">0</strong><small>Upcoming follow-ups today</small></div>
+
+      <div class="brief-stat">
+        <span>NEW LEADS</span>
+        <strong id="brief-new">0</strong>
+        <small>Last 24 hours</small>
+      </div>
+
+      <div class="brief-stat">
+        <span>HIGH PRIORITY</span>
+        <strong id="brief-high">0</strong>
+        <small>Need attention</small>
+      </div>
+
+      <div class="brief-stat">
+        <span>TOP SOURCE</span>
+        <strong id="brief-source">—</strong>
+        <small>Best lead source</small>
+      </div>
+
+    </div>
+
+    <div class="brief-priority">
+
+      <div class="brief-priority-label">
+        <span>▲</span>
+        FIRST CALL
+      </div>
+
+      <div id="brief-first-call">
+
+        <h3>No leads yet</h3>
+
+        <p>
+          Peak will identify your highest-priority
+          opportunity here.
+        </p>
+
+      </div>
+
+    </div>
+
+  </div>
+
+<div class="morning-worklist"><h3>Your call list</h3><p>Overdue follow-ups first, then today’s scheduled calls and new leads. Won and lost leads stay out of this list.</p><div id="morning-call-list"></div></div></section>
       <div id="onboarding-checklist" class="lead-entry-card" hidden>
   <h2>Welcome to Peak Lead Platform!</h2>
 
@@ -546,78 +619,7 @@
 </div>
 
 </section>
-<section class="morning-section">
 
-  <div class="section-heading">
-    <p class="eyebrow">PEAK MORNING BRIEF</p>
-
-    <h2>Start the day knowing who to call.</h2>
-
-    <p>
-      Peak summarizes your newest opportunities,
-      identifies your strongest lead, and tells your
-      team where to focus first.
-    </p>
-  </div>
-
-  <div id="morning-brief" class="morning-brief">
-
-    <div class="brief-header">
-
-      <div>
-        <p class="eyebrow">TODAY'S PRIORITIES</p>
-        <h3>Good morning.</h3>
-      </div>
-
-      <span class="live-badge">● LIVE</span>
-
-    </div>
-
-    <div class="brief-grid">
-
-      <div class="brief-stat">
-        <span>NEW LEADS</span>
-        <strong id="brief-new">0</strong>
-        <small>Last 24 hours</small>
-      </div>
-
-      <div class="brief-stat">
-        <span>HIGH PRIORITY</span>
-        <strong id="brief-high">0</strong>
-        <small>Need attention</small>
-      </div>
-
-      <div class="brief-stat">
-        <span>TOP SOURCE</span>
-        <strong id="brief-source">—</strong>
-        <small>Best lead source</small>
-      </div>
-
-    </div>
-
-    <div class="brief-priority">
-
-      <div class="brief-priority-label">
-        <span>▲</span>
-        FIRST CALL
-      </div>
-
-      <div id="brief-first-call">
-
-        <h3>No leads yet</h3>
-
-        <p>
-          Peak will identify your highest-priority
-          opportunity here.
-        </p>
-
-      </div>
-
-    </div>
-
-  </div>
-
-</section>
 
 
 
@@ -894,6 +896,7 @@
     }
   })();
 </script>
+<script src="/morning-plan.js"></script>
 <script src="/app.js"></script>
 
 </body>

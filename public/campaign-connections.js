@@ -42,7 +42,7 @@ function showConnection(info) {
   if(info.lastError)connectionStatus.textContent+=' Last delivery issue: '+info.lastError;
 }
 async function openConnection(campaign) {
-  selectedCampaign=campaign;panel.hidden=false;connectionTitle.textContent='Connect '+campaign.name;
+  document.getElementById('intake-panel').hidden=true;selectedCampaign=campaign;panel.hidden=false;connectionTitle.textContent='Connect '+campaign.name;
   connectionStatus.textContent='Loading connection…';connectionForm.hidden=true;connectionValues.hidden=true;
   try{const info=await connectionRequest();showConnection(info);
     metaPicker.hidden=true;

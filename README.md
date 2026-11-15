@@ -54,3 +54,24 @@ Google or prove Google-originated delivery. Test-payload status explicitly keeps
 that distinction visible. Before declaring the integration ready for customers,
 use Send test data in Google's form builder and verify fields and campaign in Peak.
 Keep this flow in Preview until that provider-originated check passes.
+
+
+### Website forms, custom sources and morning workflow
+
+Apply db/migrations/20261115_intake.sql in the sandbox before this release.
+Create Website or a custom-source campaign, then Set up lead intake. Choose a
+public hosted/iframe form (business HTTPS privacy URL required) or a server-side
+JSON webhook. No API access for a named external service is implied by its source
+label. Map external service fields into eventId, name, email/phone and notes;
+webhook Authorization is Bearer plus the private key. Website forms expose no key.
+Retries reuse eventId and are deduplicated transactionally. Public forms have a
+honeypot and a database-backed per-connection/IP limit of 20 requests per ten minutes;
+IP addresses are stored only as per-connection hashes. This reduces simple abuse,
+not a guarantee against sophisticated spam. Existing leads remain on disconnect.
+Website forms currently require email in the UI; server-side intake also accepts
+phone-only contacts. Test submissions before embedding, and check the site's iframe policy.
+
+Morning call list uses the viewer's local day: overdue first, scheduled calls due
+today, new leads by score, then active unscheduled leads. Won/lost/closed records
+are excluded. Dashboard data is fetched on page load or refresh; this is not an
+outbound calling service and no scheduled morning email is promised.

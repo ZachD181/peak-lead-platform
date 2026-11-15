@@ -135,14 +135,14 @@ function renderCampaigns(campaigns) {
                 }
               </p>
             </div>
-            ${["Google Ads","Facebook","Instagram"].includes(campaign.source) ? '<button type="button" class="primary-button" data-connect-campaign="'+escapeCampaignText(campaign.id)+'">Connect Lead Form</button>' : ''}
+            <button type="button" class="primary-button" data-connect-campaign="${escapeCampaignText(campaign.id)}">${['Google Ads','Facebook','Instagram'].includes(campaign.source)?'Connect Lead Form':'Set up lead intake'}</button>
           </article>
         `
       )
       .join("");
   campaignList.querySelectorAll("[data-connect-campaign]").forEach(button => button.addEventListener("click", () => {
     const campaign = campaigns.find(item => item.id === button.dataset.connectCampaign);
-    if (campaign) openConnection(campaign);
+    if (campaign) ['Google Ads','Facebook','Instagram'].includes(campaign.source)?openConnection(campaign):openIntake(campaign);
   }));
 }
 
@@ -172,13 +172,20 @@ async function loadCampaigns() {
       );
     }
 
+    const sourceSelect=document.getElementById('campaign-source');
+    for(const source of new Set((data.campaigns||[]).map(c=>c.source).filter(Boolean)))if(!Array.from(sourceSelect.options).some(o=>o.value===source))sourceSelect.add(new Option(source,source));
     renderCampaigns(
       data.campaigns || []
     );
     const params=new URLSearchParams(location.search);
     const requested=params.get('connect');
     const selected=(data.campaigns||[]).find(c=>c.id===requested);
-    if(selected)await openConnection(selected);
+    if(selected)await (['Google Ads','Facebook','Instagram'].includes(selected.source)?openConnection(selected):openIntake(selected));
+    else if(params.get('platform')==='website'){
+      const websites=(data.campaigns||[]).filter(c=>c.source==='Website');
+      if(websites.length===1)await openIntake(websites[0]);
+      else {document.getElementById('campaign-source').value='Website';campaignMessage.textContent=websites.length?'Choose a website campaign below, or create another.':'Create a Website campaign in Peak, then choose Website form to get an embeddable contact form.';campaignForm.scrollIntoView({behavior:'smooth',block:'start'});}
+    }
     else if(['facebook','google'].includes(params.get('platform'))) {
       const googleSetup=params.get('platform')==='google';
       const metaCampaigns=(data.campaigns||[]).filter(c=>googleSetup?c.source==='Google Ads':['Facebook','Instagram'].includes(c.source));
@@ -217,9 +224,7 @@ campaignForm.addEventListener(
         ).value,
 
       source:
-        document.getElementById(
-          "campaign-source"
-        ).value,
+        (document.getElementById('campaign-source').value==='Custom'?document.getElementById('campaign-custom-source').value.trim():document.getElementById('campaign-source').value),
 
       budget:
         document.getElementById(
@@ -289,6 +294,8 @@ campaignForm.addEventListener(
         "Campaign created successfully.";
 
       campaignForm.reset();
+      document.getElementById('campaign-custom-source').required=false;
+      document.getElementById('campaign-custom-source').closest('label').hidden=true;
 
       await loadCampaigns();
     } catch (error) {

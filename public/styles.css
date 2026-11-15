@@ -2108,3 +2108,15 @@ body:not([data-page="dashboard"]) .dashboard-preview > .follow-up-card {
 .manage-team-link { color: var(--accent); font-size: .85rem; text-decoration: underline; }
 #team-status { padding: 12px 0; color: var(--text); }
 @media(max-width: 600px) { .team-member-actions, .team-member-actions form { width: 100%; } }
+
+.form-honeypot { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+.public-lead-form .auth-page { min-height: auto; padding: 24px 12px; }
+.public-lead-form .auth-card { width: min(100%, 560px); }
+.public-lead-form a { text-decoration: underline; color: var(--accent); }
+.public-lead-form textarea, #intake-panel textarea { padding: 12px; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; font: inherit; width: 100%; }
+.morning-worklist { margin: 24px 0 32px; }
+.morning-worklist p { color: var(--muted); margin-bottom: 16px; }
+.morning-call { display: block; width: 100%; text-align: left; padding: 16px; margin: 8px 0; color: var(--text); background: var(--panel); border: 1px solid var(--line); border-radius: 12px; font: inherit; cursor: pointer; }
+.morning-call:hover, .morning-call:focus-visible { border-color: var(--accent); }
+
+.public-lead-form [hidden] { display: none; }

@@ -2241,12 +2241,17 @@ const handleMetaOAuth = require("../lib/metaOAuth").createHandler({requireActive
 
 const handleTeam = require("../lib/team").createHandler({requireActiveSubscription,readBody,sendJson});
 
+const handleIntake=require('../lib/intake').createHandler({requireActiveSubscription,readBody,readRawBody,sendJson});
+
 module.exports = async function handler(req, res) {
   try {
     const url = new URL(
       req.url,
       "http://localhost"
     );
+    if(url.pathname.startsWith('/api/intake/')||url.pathname.startsWith('/api/website-forms/')||url.pathname.endsWith('/intake')) {
+      if(await handleIntake(req,res,url))return;
+    }
     const ownerAction = (req.method === 'POST' && ['/api/create-billing-portal','/api/create-checkout-session','/api/campaigns'].includes(url.pathname)) ||
       (req.method === 'PATCH' && ['/api/account/company','/api/settings'].includes(url.pathname));
     if(ownerAction) {
