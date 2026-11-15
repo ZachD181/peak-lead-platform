@@ -13,7 +13,7 @@ form.addEventListener('submit',async event=>{
     for(const [query,key] of [['utm_source','utmSource'],['utm_medium','utmMedium'],['utm_campaign','utmCampaign'],['gclid','gclid']])if(params.has(query))payload[key]=params.get(query);
     const r=await fetch('/api/website-forms/'+id,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     const result=await r.json();if(!r.ok)throw Error(result.error||'Could not send your inquiry. Please try again.');
-    form.reset();form.hidden=true;status.textContent='Thank you. Your inquiry has been sent to the business.';
+    form.reset();form.hidden=true;status.textContent='Thank you. Your inquiry has been sent to the business.';document.getElementById('form-return').hidden=false;
   }catch(error){status.textContent=error.message;}finally{button.disabled=false;}
 });
 initialize().catch(error=>{status.textContent=error.message;});
