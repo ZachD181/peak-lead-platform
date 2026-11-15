@@ -2129,3 +2129,11 @@ body:not([data-page="dashboard"]) .dashboard-preview > .follow-up-card {
 #website-preview-frame { border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg); min-width: 0; }
 #website-preview-frame[hidden] { display: none; }
 @media(max-width: 760px) { .embed-preview-layout { grid-template-columns: 1fr; } .embed-preview-page { width: calc(100% - 24px); } }
+
+.peak-contact { display: grid; grid-template-columns: 1fr 1.15fr; gap: 36px; align-items: start; margin: 64px auto; scroll-margin-top: 32px; }
+.peak-contact-copy { padding: 24px 0; }
+.peak-contact h2 { font-size: clamp(1.8rem, 3vw, 2.8rem); line-height: 1.15; margin: 16px 0 24px; }
+.peak-contact p { color: var(--muted); margin: 16px 0; }
+.peak-contact a { color: var(--accent); text-decoration: underline; }
+.peak-contact iframe { border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg); min-width: 0; }
+@media(max-width: 760px) { .peak-contact { grid-template-columns: 1fr; gap: 16px; } }
