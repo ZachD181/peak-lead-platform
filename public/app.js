@@ -171,7 +171,11 @@ activityFilter?.addEventListener("change", () => {
     )
     .join("");
 
+if(lead.assignedUserId&&!pipelineUsers.some(user=>user.id===lead.assignedUserId)) {
+  const former=document.createElement('option');former.value=lead.assignedUserId;former.textContent='Inactive team member — choose a new assignee';former.disabled=true;managerAssignedUser.add(former);
+}
 managerAssignedUser.value = lead.assignedUserId || "";
+managerAssignedUser.dataset.originalValue=lead.assignedUserId||'';
 
   if (lead.nextFollowUp) {
   const followUpDate = new Date(lead.nextFollowUp);
@@ -1363,6 +1367,8 @@ leadManagerForm?.addEventListener("submit", async (event) => {
         },
        body: JSON.stringify({
   stage: managerStage.value,
+  ...(managerAssignedUser.value!==managerAssignedUser.dataset.originalValue
+    ? {assignedUserId:managerAssignedUser.value||null} : {}),
   notes: managerNotes.value,
   nextFollowUp: managerFollowUp.value
     ? new Date(managerFollowUp.value).toISOString()

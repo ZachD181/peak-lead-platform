@@ -1579,7 +1579,7 @@ async function handleUpdateLead(
     );
 
     const validUser = users.some(
-      (user) => String(user.id) === assignedUserId
+      (user) => String(user.id) === assignedUserId && user.status === "active"
     );
 
     if (!validUser) {
@@ -1821,7 +1821,7 @@ async function handleLogin(req, res) {
     });
   }
 
-  if (!loginResult.user) {
+    if (!loginResult.user || loginResult.user.status !== "active") {
     return sendJson(res, 401, {
       error: "Invalid email or password.",
     });
@@ -2239,12 +2239,24 @@ const handleSharedMetaWebhook = require("../lib/metaWebhook").createHandler({rea
 
 const handleMetaOAuth = require("../lib/metaOAuth").createHandler({requireActiveSubscription,readBody,sendJson});
 
+const handleTeam = require("../lib/team").createHandler({requireActiveSubscription,readBody,sendJson});
+
 module.exports = async function handler(req, res) {
   try {
     const url = new URL(
       req.url,
       "http://localhost"
     );
+    const ownerAction = (req.method === 'POST' && ['/api/create-billing-portal','/api/create-checkout-session','/api/campaigns'].includes(url.pathname)) ||
+      (req.method === 'PATCH' && ['/api/account/company','/api/settings'].includes(url.pathname));
+    if(ownerAction) {
+      const ownerSession=await requireSession(req,res);if(!ownerSession)return;
+      const actor=await getUserById(ownerSession.userId);
+      if(!['owner','peak_admin'].includes(actor?.role))return sendJson(res,403,{error:'Only your account owner can change billing, company settings, scoring rules, or campaigns.'});
+    }
+    if (url.pathname === "/api/team" || url.pathname.startsWith("/api/team/")) {
+      if (await handleTeam(req,res,url)) return;
+    }
     if (url.pathname === "/api/integrations/meta/callback" || /^\/api\/campaigns\/[^/]+\/meta\//.test(url.pathname)) {
       if (await handleMetaOAuth(req,res,url)) return;
     }

@@ -21,3 +21,20 @@ imports for that campaign while retaining existing leads and delivery history.
 Disconnect does not revoke other campaigns' access to the same Facebook Page.
 Meta delivery failures appear in the campaign connection status; reconnect restores expired access.
 Verify with a provider-originated test lead, then confirm the campaign and contact fields.
+
+
+### Team members
+
+Apply db/migrations/20261114_team_invites.sql before deploying team management.
+Account owners open /team.html from Dashboard or Account. They create a named
+sales-team member and copy a private seven-day invitation link to share themselves;
+the application does not send an invitation email. Only token hashes are stored.
+The invited member chooses a password before their account becomes active.
+Active members populate Assigned to. Owners can rename, deactivate, and restore
+members. Deactivation revokes sessions and outstanding invitations, blocks login,
+and retains previous lead assignments. New assignments must target active users
+in the same client account. Owners cannot disable themselves or grant owner/admin roles.
+Billing, company/scoring changes, campaign creation, and team administration are
+owner-only. Team members can work with their company's leads.
+Preview invitation links use the stable META_OAUTH_REDIRECT_URI origin when configured;
+otherwise APP_URL is required. Invitation acceptance is /accept-invite.html#token=... .

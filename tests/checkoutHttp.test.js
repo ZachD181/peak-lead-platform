@@ -92,7 +92,7 @@ test("Canceled customer can restart Checkout without another trial", () => {
 
     repository.getUserById = async () => ({
       id: "user-123",
-      email: "customer@example.com"
+      email: "customer@example.com", role: "owner"
     });
 
     repository.getCheckoutReservation = async () => ({
@@ -241,7 +241,7 @@ test("Active customer cannot start duplicate Checkout", () => {
 
     repository.getUserById = async () => ({
       id: "user-123",
-      email: "customer@example.com"
+      email: "customer@example.com", role: "owner"
     });
 
     repository.getCheckoutReservation = async () => ({

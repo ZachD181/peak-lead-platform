@@ -2087,3 +2087,24 @@ body:not([data-page="dashboard"]) .dashboard-preview > .follow-up-card {
   .dashboard-connection-actions { flex-direction: column; }
   .dashboard-connection-actions a { width: 100%; }
 }
+
+.team-page { width: min(1000px, calc(100% - 40px)); margin: 40px auto 80px; }
+.team-page header { margin-bottom: 24px; }
+.team-page p { color: var(--muted); }
+.team-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; margin: 24px 0; }
+.team-card[hidden], #accept-team[hidden] { display: none; }
+.team-card form, .team-card label { display: grid; gap: 10px; }
+.team-card form { gap: 16px; margin-top: 20px; }
+.team-card input { width: 100%; padding: 12px; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; font: inherit; }
+.team-card button { cursor: pointer; }
+.team-card .secondary-button { color: var(--text); }
+.team-card button:disabled { opacity: .5; cursor: wait; }
+.team-member { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 20px; padding: 24px 0; border-bottom: 1px solid var(--line); }
+.team-member:last-child { border-bottom: 0; }
+.team-member p { overflow-wrap: anywhere; }
+.team-member-actions { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; }
+.team-member-actions form { margin: 0; }
+.team-member-actions label { color: var(--muted); }
+.manage-team-link { color: var(--accent); font-size: .85rem; text-decoration: underline; }
+#team-status { padding: 12px 0; color: var(--text); }
+@media(max-width: 600px) { .team-member-actions, .team-member-actions form { width: 100%; } }

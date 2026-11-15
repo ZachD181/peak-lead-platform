@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Team Members | Peak</title><link rel="stylesheet" href="/styles.css"></head>
+<body>
+<nav class="navbar"><a class="brand" href="/dashboard.html"><span class="peak-mark">▲</span> PEAK</a><div class="nav-links"><a href="/dashboard.html">Dashboard</a><a href="/campaigns.html">Campaigns</a><a href="/team.html" aria-current="page">Team</a><a href="/account.html">Account</a></div></nav>
+<main class="team-page">
+  <header><p class="eyebrow">YOUR PEOPLE</p><h1>Team Members</h1><p>Add your sales team so you can assign leads and share the workload.</p></header>
+  <p id="team-status" role="status" aria-live="polite">Loading your team…</p>
+  <section id="team-invite-card" class="team-card" hidden>
+    <h2>Add a team member</h2><p>Enter their name and email, then share their private invitation link. They choose their own password. Links expire after seven days.</p>
+    <form id="team-add"><label>Name<input name="name" maxlength="100" autocomplete="name" required placeholder="Alex Morgan"></label><label>Email<input name="email" type="email" maxlength="254" autocomplete="email" required placeholder="alex@yourbusiness.com"></label><button class="primary-button" type="submit">Create invitation</button></form>
+  </section>
+  <section id="team-share" class="team-card" hidden><h2>Share the invitation</h2><p id="team-share-recipient"></p><label>Private invitation link<input id="team-invite-url" readonly></label><button id="team-copy" type="button" class="primary-button">Copy invitation link</button><p>No email has been sent. Share this link directly with the intended person.</p></section>
+  <section id="team-list-card" class="team-card" hidden><h2>Your team</h2><p>Active members appear in the lead manager’s Assigned to dropdown. Deactivating a member stops their access and keeps existing leads.</p><div id="team-list"></div></section>
+</main><script src="/team.js"></script></body></html>
