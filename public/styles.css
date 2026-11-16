@@ -2201,3 +2201,26 @@ body[data-page="lead-list"] .nav-links a:hover { color: var(--accent); backgroun
 .lead-pagination .secondary-button:not(:disabled):hover { border-color: var(--accent); background: var(--accent-soft); }
 body[data-page="lead-list"] a:focus-visible,.lead-pagination button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 @media(max-width:650px){body[data-page="lead-list"] .navbar{align-items:flex-start;gap:18px;flex-direction:column;}body[data-page="lead-list"] .nav-links{gap:4px;}.lead-list-controls{padding:16px;}.lead-pagination{gap:10px;}}
+
+/* Customer call list and overview */
+body[data-page="dashboard"] .morning-section { padding-bottom: 28px; }
+body[data-page="dashboard"] .morning-worklist { margin: 20px 0 0; padding: 22px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); }
+.call-list-heading { display:flex; align-items:center; justify-content:space-between; gap:20px; margin-bottom:18px; }
+.call-list-heading h3 { font-size:1.1rem; margin:0; }
+.morning-worklist .call-list-heading p { margin:6px 0 0; font-size:.85rem; line-height:1.5; }
+.call-list-heading .secondary-button { flex-shrink:0; color:var(--accent); border-color:rgba(214,255,75,.25); gap:12px; }
+.morning-worklist .morning-call { margin:10px 0 0; padding:18px; background:rgba(255,255,255,.025); transition:border-color .15s,background .15s; }
+.morning-worklist .morning-call:hover { background:rgba(214,255,75,.04); }
+.morning-worklist .morning-call:focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
+.morning-call-summary { display:flex; justify-content:space-between; align-items:center; gap:14px; }
+.morning-call-summary strong { font-size:1rem; overflow-wrap:anywhere; }
+.call-score { color:var(--accent); background:var(--accent-soft); padding:5px 10px; border-radius:20px; font-size:.75rem; font-weight:700; white-space:nowrap; }
+.call-details { display:flex; align-items:center; flex-wrap:wrap; gap:12px; color:var(--muted); font-size:.8rem; margin-top:10px; }
+.call-status { color:var(--text); }
+.call-status.is-overdue { color:#f1bc73; }
+.morning-worklist .morning-call .lead-assignee { display:block; margin-top:12px; padding-top:10px; border-top:1px solid var(--line); }
+body[data-page="dashboard"] .metrics { gap:14px; }
+body[data-page="dashboard"] .metric-card { padding:22px; box-shadow:none; border-top:2px solid rgba(214,255,75,.3); }
+body[data-page="dashboard"] .metric-card strong { color:var(--accent); font-size:clamp(1.5rem,2.5vw,2rem); margin:10px 0 8px; overflow-wrap:anywhere; }
+body[data-page="dashboard"] .metric-card small { line-height:1.5; }
+@media(max-width:650px){.call-list-heading{align-items:flex-start;flex-direction:column;gap:14px;}body[data-page="dashboard"] .morning-worklist{padding:16px;}body[data-page="dashboard"] .metric-card{padding:16px;}.morning-call-summary{align-items:flex-start;}}

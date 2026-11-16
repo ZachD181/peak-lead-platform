@@ -932,10 +932,15 @@ function renderMorningBrief(leads) {
     const button=document.createElement('button');button.type='button';button.className='morning-call';
     const due=Date.parse(lead.nextFollowUp),reason=due<Date.now()?'Overdue follow-up':Number.isFinite(due)&&due<=new Date().setHours(23,59,59,999)?'Follow-up today':lead.stage==='New'?'New lead':'Needs a next step';
     const summary=document.createElement('span');summary.className='morning-call-summary';
-    summary.textContent=lead.name+' · '+reason+' · '+(lead.source||'Direct')+' · Score '+Number(lead.score||0);
+    const name=document.createElement('strong');name.textContent=lead.name;
+    const score=document.createElement('span');score.className='call-score';score.textContent='Score '+Number(lead.score||0);
+    summary.append(name,score);
+    const details=document.createElement('span');details.className='call-details';
+    const status=document.createElement('span');status.className=due<Date.now()?'call-status is-overdue':'call-status';status.textContent=reason;
+    const source=document.createElement('span');source.textContent=lead.source||'Direct';details.append(status,source);
     const assignment=document.createElement('small');assignment.className='lead-assignee';
     assignment.textContent='Assigned to: '+leadAssigneeName(lead);
-    button.append(summary,assignment);
+    button.append(summary,details,assignment);
     button.addEventListener('click',()=>openLeadManager(lead));list.append(button);
   }
 }
