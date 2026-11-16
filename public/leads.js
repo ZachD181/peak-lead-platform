@@ -1,4 +1,5 @@
 const urgentView=new URLSearchParams(location.search).get('view')==='urgent';
+document.querySelector('[data-list-view="'+(urgentView?'urgent':'all')+'"]').setAttribute('aria-current','page');
 const status=document.getElementById('lead-list-status'),cards=document.getElementById('all-lead-cards'),search=document.getElementById('lead-list-search'),stage=document.getElementById('lead-list-stage'),sort=document.getElementById('lead-list-sort');
 let allLeads=[],team=[],page=0;const pageSize=20;
 function assignee(lead){return lead.assignedUserId?team.find(u=>u.id===lead.assignedUserId)?.name||'Inactive team member':'Unassigned';}
@@ -9,9 +10,9 @@ function renderLeads(){
  const pages=Math.max(1,Math.ceil(leads.length/pageSize));page=Math.min(page,pages-1);cards.replaceChildren();
  const start=page*pageSize;for(const lead of leads.slice(start,start+pageSize)){
    const card=document.createElement('article');card.className='all-lead-card';const h=document.createElement('h2');h.textContent=lead.name;card.append(h);
-   line(card,(lead.source||'Direct')+(lead.campaignName?' · '+lead.campaignName:''));
-   line(card,(lead.stage||'New')+' · Score '+Number(lead.score||0)+' · '+(lead.tier||'Nurture'));
-   if(lead.nextFollowUp){const d=new Date(lead.nextFollowUp);line(card,(d<Date.now()?'Overdue: ':'Follow-up: ')+d.toLocaleString());}
+   line(card,(lead.source||'Direct')+(lead.campaignName?' · '+lead.campaignName:''),'lead-card-source');
+   line(card,(lead.stage||'New')+' · Score '+Number(lead.score||0)+' · '+(lead.tier||'Nurture'),'lead-card-priority');
+   if(lead.nextFollowUp){const d=new Date(lead.nextFollowUp);line(card,(d<Date.now()?'Overdue: ':'Follow-up: ')+d.toLocaleString(),d<Date.now()?'lead-due lead-due-overdue':'lead-due');}
    line(card,'Assigned to: '+assignee(lead),'lead-assignee');
    const open=document.createElement('a');open.className='secondary-button';open.href='/dashboard.html?lead='+encodeURIComponent(lead.id)+'#lead-manager';open.textContent='Open lead';open.setAttribute('aria-label','Open lead '+lead.name);card.append(open);cards.append(card);
  }
