@@ -2166,3 +2166,5 @@ body:not([data-page="dashboard"]) .dashboard-preview > .follow-up-card {
 .lead-pagination { align-items: center; justify-content: space-between; }
 .lead-pagination button:disabled { opacity: .45; cursor: default; }
 @media(max-width:650px){#all-lead-cards{grid-template-columns:1fr;}.lead-list-controls{align-items:stretch;flex-direction:column;}}
+
+body[data-page="dashboard"] .dashboard-title { color: var(--accent); font-size: clamp(1.4rem, 2.4vw, 1.85rem); font-weight: 800; letter-spacing: .1em; line-height: 1.25; margin: 0; }
