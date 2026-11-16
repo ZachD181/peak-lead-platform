@@ -1258,7 +1258,7 @@ const scoringRules = {
       }
 
       settingsStatus.textContent =
-        "Scoring rules saved successfully.";
+        "Your scoring preferences have been saved.";
 
     } catch (error) {
       console.error(
