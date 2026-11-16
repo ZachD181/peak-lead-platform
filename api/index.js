@@ -2249,7 +2249,12 @@ module.exports = async function handler(req, res) {
       req.url,
       "http://localhost"
     );
-    if(req.method==='GET'&&url.pathname==='/api/site-config')return sendJson(res,200,require('../lib/releaseConfig').siteConfig());
+    if(req.method==='GET'&&url.pathname==='/api/site-config'){
+      const sessionId=getCookie(req,'peak_session');
+      const session=sessionId?await getSession(sessionId):null;
+      res.setHeader('Cache-Control','private, no-store');
+      return sendJson(res,200,require('../lib/releaseConfig').siteConfig(process.env,session?.clientId));
+    }
     if(req.method==='GET'&&url.pathname==='/api/admin/inquiries'){
       const admin=await requirePeakAdmin(req,res);if(!admin)return;
       const clientId=process.env.PEAK_INBOX_CLIENT_ID;

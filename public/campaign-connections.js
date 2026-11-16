@@ -37,13 +37,13 @@ function showConnection(info) {
   connectionStatus.textContent=info.lastReceivedAt?'Lead received '+new Date(info.lastReceivedAt).toLocaleString()+'. Open Dashboard to review it.':
     info.verifiedAt?'Webhook verified. Waiting for the first lead.':'Setup created. Waiting for the ad platform to verify or send its first lead.';
   if(provider==='google')connectionStatus.textContent=info.lastReceivedAt
-    ? (info.lastDeliveryIsTest?'Test payload received ':'Lead received ')+new Date(info.lastReceivedAt).toLocaleString()+'. '+(info.lastDeliveryIsTest?'Check the lead in Dashboard. A simulated test does not confirm Google delivery; run Send test data inside Google Ads separately.':'Open Dashboard to review it.')
+    ? (info.lastDeliveryIsTest?'Test payload received ':'Lead received ')+new Date(info.lastReceivedAt).toLocaleString()+'. '+(info.lastDeliveryIsTest?'Check the lead in Dashboard. Use Google’s Send test data to verify delivery; Peak’s simulated tests only check the local connection.':'Open Dashboard to review it.')
     : 'Setup details ready. Paste the URL and key into your Google Ads lead form, then use Google’s Send test data button.';
   if(info.lastError)connectionStatus.textContent+=' Last delivery issue: '+info.lastError;
 }
 async function openConnection(campaign) {
   const config=await window.peakSiteConfig;
-  if(config&&!config.adConnectionsEnabled){panel.hidden=false;connectionTitle.textContent='Ad connections coming soon';connectionStatus.textContent='Facebook/Instagram approval and Google delivery verification are still in progress. Use a Website form or Custom webhook campaign today.';connectionForm.hidden=true;connectionValues.hidden=true;metaOAuth.hidden=true;metaPicker.hidden=true;panel.scrollIntoView({behavior:'smooth'});return;}
+  if(config&&!(campaign.source==='Google Ads'?(config.googleConnectionsEnabled??config.adConnectionsEnabled):config.adConnectionsEnabled)){panel.hidden=false;connectionTitle.textContent='Ad connections coming soon';connectionStatus.textContent='Facebook/Instagram approval and Google delivery verification are still in progress. Use a Website form or Custom webhook campaign today.';connectionForm.hidden=true;connectionValues.hidden=true;metaOAuth.hidden=true;metaPicker.hidden=true;panel.scrollIntoView({behavior:'smooth'});return;}
   document.getElementById('intake-panel').hidden=true;selectedCampaign=campaign;panel.hidden=false;connectionTitle.textContent='Connect '+campaign.name;
   connectionStatus.textContent='Loading connection…';connectionForm.hidden=true;connectionValues.hidden=true;
   try{const info=await connectionRequest();showConnection(info);
