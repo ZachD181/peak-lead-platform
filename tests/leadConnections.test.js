@@ -136,3 +136,12 @@ test('Google preserves click attribution and does not mark ordinary payloads as 
   const s=setup(),r=await s.request({body:google({is_test:false,gcl_id:'example-click-id',lead_submit_time:'2026-11-15T01:00:00Z'})});
   assert.equal(r.status,200);assert.equal(s.saved[0].isTest,false);assert.equal(s.saved[0].lead.gclid,'example-click-id');assert.equal(s.saved[0].lead.firstVisit,'2026-11-15T01:00:00.000Z');
 });
+
+ test('Google setup and replacement produce unique keys within the 50-character provider limit',async()=>{
+  const s=setup();const url='/api/campaigns/'+campaignId+'/connection';
+  const first=await s.request({url,body:{}}),second=await s.request({url,body:{}});
+  assert.equal(first.status,201);assert.equal(second.status,201);
+  const a=first.body.connection.verificationKey,b=second.body.connection.verificationKey;
+  assert.match(a,/^[a-f0-9]{48}$/);assert.match(b,/^[a-f0-9]{48}$/);assert.notEqual(a,b);
+  assert.equal(s.lib.decrypt(s.stats.stored.encrypted).verificationKey,b);
+});
