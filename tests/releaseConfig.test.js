@@ -10,3 +10,9 @@ test('Google production pilot is scoped to its configured tenant and does not en
  assert.equal(siteConfig(env,'pilot').googleConnectionsEnabled,true);assert.equal(siteConfig(env,'other').googleConnectionsEnabled,false);
  assert.equal(JSON.stringify(siteConfig(env,'pilot')).includes('pilot'),false);
 });
+
+test('Google customer rollout enables every tenant while keeping Meta disabled',()=>{
+ const {googleConnectionsEnabled}=require('../lib/releaseConfig');const env={VERCEL_ENV:'production',ENABLE_AD_CONNECTIONS:'false',ENABLE_GOOGLE_CONNECTIONS:'true'};
+ assert.equal(googleConnectionsEnabled('customer-one',env),true);assert.equal(googleConnectionsEnabled('customer-two',env),true);
+ assert.equal(adConnectionsEnabled(env),false);assert.equal(siteConfig(env).googleConnectionsEnabled,true);
+});

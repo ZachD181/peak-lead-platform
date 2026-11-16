@@ -43,7 +43,7 @@ function showConnection(info) {
 }
 async function openConnection(campaign) {
   const config=await window.peakSiteConfig;
-  if(config&&!(campaign.source==='Google Ads'?(config.googleConnectionsEnabled??config.adConnectionsEnabled):config.adConnectionsEnabled)){panel.hidden=false;connectionTitle.textContent='Ad connections coming soon';connectionStatus.textContent='Facebook/Instagram approval and Google delivery verification are still in progress. Use a Website form or Custom webhook campaign today.';connectionForm.hidden=true;connectionValues.hidden=true;metaOAuth.hidden=true;metaPicker.hidden=true;panel.scrollIntoView({behavior:'smooth'});return;}
+  if(config&&!(campaign.source==='Google Ads'?(config.googleConnectionsEnabled??config.adConnectionsEnabled):config.adConnectionsEnabled)){panel.hidden=false;connectionTitle.textContent='Ad connections coming soon';connectionStatus.textContent=campaign.source==='Google Ads'?'Google Ads setup is not available yet. Website forms and custom webhooks are available.':'Facebook/Instagram approval is still in progress. Google Ads lead forms, website forms, and custom webhooks are available.';connectionForm.hidden=true;connectionValues.hidden=true;metaOAuth.hidden=true;metaPicker.hidden=true;panel.scrollIntoView({behavior:'smooth'});return;}
   document.getElementById('intake-panel').hidden=true;selectedCampaign=campaign;panel.hidden=false;connectionTitle.textContent='Connect '+campaign.name;
   connectionStatus.textContent='Loading connection…';connectionForm.hidden=true;connectionValues.hidden=true;
   try{const info=await connectionRequest();showConnection(info);
