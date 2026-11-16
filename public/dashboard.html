@@ -18,7 +18,7 @@
 
     <div class="nav-links">
     <a href="/dashboard.html">Dashboard</a>
-<a href="/dashboard.html#platform">Leads & Pipeline</a>
+<a href="/leads.html">Leads & Pipeline</a>
 <a href="/dashboard.html#morning-brief">Morning Brief</a>
 <a href="/campaigns.html">Campaigns</a>
 <a href="/team.html">Team</a>
@@ -185,7 +185,7 @@
 
   </div>
 
-<div class="morning-worklist"><h3>Your call list</h3><p>Overdue follow-ups first, then today’s scheduled calls and new leads. Won and lost leads stay out of this list.</p><div id="morning-call-list"></div></div></section>
+<div class="morning-worklist"><h3>Your call list</h3><p>Overdue follow-ups first, then today’s scheduled calls and new leads. Won and lost leads stay out of this list.</p><a class="secondary-button" href="/leads.html?view=urgent">View urgent leads</a><div id="morning-call-list"></div></div></section>
       <div id="onboarding-checklist" class="lead-entry-card" hidden>
   <h2>Welcome to Peak Lead Platform!</h2>
 
@@ -356,7 +356,7 @@
         <div class="pipeline-header">
           <div>
             <p class="eyebrow">PRIORITY PIPELINE</p>
-            <h3>Today's Leads</h3>
+            <h3>Your priority lead</h3><p>One active lead at a time. Open the full list to see every opportunity.</p>
           </div>
 
           <span class="live-badge">
@@ -365,7 +365,8 @@
         </div>
 
 
-      <div id="pipeline-board" class="pipeline-board"></div>
+      <div class="lead-view-actions"><label>Show <select id="pipeline-preview-order"><option value="score">Highest scoring</option><option value="newest">Newest</option></select></label><a href="/leads.html" class="secondary-button">View all leads</a></div>
+      <div id="pipeline-board" class="pipeline-board" data-preview="true"></div>
 
       </div>
 
@@ -375,7 +376,7 @@
   <div class="pipeline-header">
     <div>
       <p class="eyebrow">FOLLOW-UP QUEUE</p>
-      <h3>Follow-Ups Due</h3>
+      <h3>Follow-Ups Due</h3><a class="text-button" href="/leads.html?view=urgent">View urgent leads</a>
     </div>
 
     <span class="live-badge">
@@ -897,6 +898,7 @@
   })();
 </script>
 <script src="/morning-plan.js"></script>
+<script src="/lead-views.js"></script>
 <script src="/site-config.js"></script>
 <script src="/app.js"></script>
 

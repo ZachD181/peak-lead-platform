@@ -434,9 +434,13 @@ if (dashboardError) {
 
     updateOnboardingChecklist(data.leads || []);
 
-    renderPipeline(
-      data.leads || []
-    );
+    renderPipeline(data.leads || []);
+    const requestedLeadId=new URLSearchParams(location.search).get('lead');
+    if(requestedLeadId){
+      const selected=(data.leads||[]).find(lead=>lead.id===requestedLeadId);
+      const address=new URL(location.href);address.searchParams.delete('lead');history.replaceState(null,'',address.pathname+address.search+address.hash);
+      if(selected)openLeadManager(selected);
+    }
 
     renderFollowUps(
   data.leads || []
@@ -493,7 +497,7 @@ if (reminderCount > 0) {
     return;
   }
 
-  followUps.forEach(({ lead, followUpDate }) => {
+  followUps.slice(0,3).forEach(({ lead, followUpDate }) => {
     const startOfToday = new Date(
       now.getFullYear(),
       now.getMonth(),
@@ -663,6 +667,8 @@ function getScoreClass(score) {
   return "nurture";
 }
 
+let dashboardPipelineLeads=[];
+document.getElementById('pipeline-preview-order')?.addEventListener('change',()=>renderPipeline(dashboardPipelineLeads));
 function renderPipeline(leads) {
  const pipelineBoard =
   document.getElementById("pipeline-board");
@@ -670,8 +676,9 @@ function renderPipeline(leads) {
 if (!pipelineBoard) return;
 
 pipelineBoard.innerHTML = "";
-
-const pipelineStages = [
+const compact=pipelineBoard.dataset.preview==='true';
+if(compact){dashboardPipelineLeads=leads;leads=selectPipelinePreview(leads,document.getElementById('pipeline-preview-order')?.value||'score');}
+const pipelineStages = compact ? (leads.length?[leads[0].stage||'New']:[]) : [
   "New",
   "Appointment Set",
   "Estimate Sent",
@@ -702,7 +709,7 @@ pipelineStages.forEach((stage) => {
     empty.className = "dashboard-empty";
 
     empty.textContent =
-      "No leads yet. Add your first lead to get started.";
+      compact&&dashboardPipelineLeads.length?"No active leads need attention. View all leads to see won and lost opportunities.":"No leads yet. Add your first lead to get started.";
 
     pipelineBoard.appendChild(empty);
     return;
@@ -921,7 +928,7 @@ function renderMorningBrief(leads) {
   firstElement.innerHTML=first?'<h3>'+escapeHtml(first.name)+' <span class="brief-score">'+Number(first.score||0)+'</span></h3><p>'+escapeHtml(first.recommendedAction||'Review this lead and plan your next contact.')+'</p><p class="lead-assignee">Assigned to: '+escapeHtml(leadAssigneeName(first))+'</p>':'<h3>No calls due</h3><p>Your active leads have no calls waiting in this list.</p>';
   const list=document.getElementById('morning-call-list');list.replaceChildren();
   if(!plan.queue.length){list.textContent='Connect a source above to bring new inquiries into Peak automatically.';return;}
-  for(const lead of plan.queue.slice(0,12)){
+  for(const lead of plan.queue.slice(0,3)){
     const button=document.createElement('button');button.type='button';button.className='morning-call';
     const due=Date.parse(lead.nextFollowUp),reason=due<Date.now()?'Overdue follow-up':Number.isFinite(due)&&due<=new Date().setHours(23,59,59,999)?'Follow-up today':lead.stage==='New'?'New lead':'Needs a next step';
     const summary=document.createElement('span');summary.className='morning-call-summary';
