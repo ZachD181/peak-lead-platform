@@ -68,7 +68,7 @@ registerForm?.addEventListener(
       }
 
       registerMessage.textContent =
-        "Account created. Redirecting to login...";
+        "Account created. Sign in next, then activate your trial in secure checkout to open your dashboard.";
 
       setTimeout(() => {
         window.location.href =

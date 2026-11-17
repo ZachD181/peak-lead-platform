@@ -36,3 +36,17 @@ test('canceled paid subscription retains scheduled end date message',async()=>{
   assert.match(elements['billing-subtitle'].textContent,/active until November 24, 2099 and will not renew/);
   assert.equal(elements['upgrade-button'].style.display,'none');
 });
+
+test('new inactive account is invited to activate rather than told its trial ended',async()=>{
+ const e=await render({subscriptionStatus:'inactive',trialEndsAt:null,billingSubscriptionId:null});
+ assert.equal(e['billing-title'].textContent,'Activate your 14-day Peak trial');
+ assert.match(e['billing-subtitle'].textContent,/payment method is required/);
+ assert.equal(e['upgrade-button'].textContent,'Start my 14-day trial');
+ assert.match(e['billing-message'].textContent,/has not started yet/);
+ assert.equal(e['manage-subscription-button'].style.display,'none');
+});
+test('previously subscribed inactive account is not promised another trial',async()=>{
+ const e=await render({subscriptionStatus:'inactive',trialEndsAt:null,billingSubscriptionId:'sub_previous'});
+ assert.equal(e['billing-title'].textContent,'Activate your Peak subscription');
+ assert.equal(e['upgrade-button'].textContent,'Activate Peak');
+});

@@ -138,7 +138,14 @@ if (!response.ok) {
     const status =
       data.subscriptionStatus;
 
-      if (status === "active") {
+    const awaitingActivation = status === "inactive" && !data.billingSubscriptionId && !data.trialEndsAt;
+    if (awaitingActivation) {
+      billingTitle.textContent = "Activate your 14-day Peak trial";
+      billingSubtitle.textContent = "Your account is ready. Complete secure Stripe checkout to activate your trial and open your dashboard. A payment method is required; checkout shows the price and renewal date before you confirm.";
+    } else if (status === "inactive") {
+      billingTitle.textContent = "Activate your Peak subscription";
+      billingSubtitle.textContent = "Complete secure checkout to restore dashboard access. Review your billing terms before confirming.";
+    } else if (status === "active") {
   billingTitle.textContent =
     "Manage your Peak subscription";
 
@@ -209,6 +216,7 @@ if (!response.ok) {
       Boolean(data.billingCustomerId);
 
     if (upgradeButton) {
+      upgradeButton.textContent = awaitingActivation ? "Start my 14-day trial" : "Activate Peak";
       upgradeButton.style.display =
         (status === "active" || (status === "trialing" && Boolean(data.billingSubscriptionId)))
           ? "none"
@@ -227,7 +235,8 @@ if (!response.ok) {
     }
 
     if (billingMessage) {
-  if (status === "active" && data.cancelAtPeriodEnd) {
+  if (awaitingActivation) { billingMessage.textContent = "Your trial has not started yet. Creating your account did not charge your card."; }
+  else if (status === "active" && data.cancelAtPeriodEnd) {
     billingMessage.textContent = "";
   } else if (status === "active") {
     billingMessage.textContent =
