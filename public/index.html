@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>Peak Lead Platform - Lead scoring and a daily call list for small business</title>
+  <title>Peak - Lead scoring and a daily call list</title>
   <meta name="description" content="Peak captures, scores and queues every inbound lead so you know who to call first. Free trial for small businesses running paid lead gen." />
 
   <link rel="stylesheet" href="/styles.css" />
@@ -13,7 +13,7 @@
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Peak Lead Platform" />
   <meta property="og:locale" content="en_US" />
-  <meta property="og:title" content="Peak Lead Platform - Lead scoring and a daily call list for small business" />
+  <meta property="og:title" content="Peak - Lead scoring and a daily call list" />
   <meta property="og:description" content="Peak captures, scores and queues every inbound lead so you know who to call first. Free trial for small businesses running paid lead gen." />
   <meta property="og:url" content="https://www.peakleadplatform.com/" />
   <meta property="og:image" content="https://www.peakleadplatform.com/images/peak-product-preview.jpg" />
@@ -22,7 +22,7 @@
   <meta property="og:image:height" content="630" />
   <meta property="og:image:alt" content="Peak dashboard preview with fictional sample lead totals and priority indicators, labeled SAMPLE DATA." />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Peak Lead Platform - Lead scoring and a daily call list for small business" />
+  <meta name="twitter:title" content="Peak - Lead scoring and a daily call list" />
   <meta name="twitter:description" content="Peak captures, scores and queues every inbound lead so you know who to call first. Free trial for small businesses running paid lead gen." />
   <meta name="twitter:image" content="https://www.peakleadplatform.com/images/peak-product-preview.jpg" />
   <meta name="twitter:image:alt" content="Peak dashboard preview with fictional sample lead totals and priority indicators, labeled SAMPLE DATA." />
@@ -81,9 +81,10 @@
   ]
 }
 </script>
+<script id="faq-schema" type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Is the demo data from real customers?","acceptedAnswer":{"@type":"Answer","text":"No. The names, lead records, and performance figures in the homepage demo are fictional examples, labeled SAMPLE DATA. They illustrate the workflow and are not customer results or testimonials. Your own account displays the inquiries you add or receive through connected sources."}},{"@type":"Question","name":"What does the trial cost, and what happens afterward?","acceptedAnswer":{"@type":"Answer","text":"The trial is free for 14 days after activation in Stripe checkout. Then $200.00 / month (USD) . A payment method is required to activate the trial, and your subscription renews automatically unless you cancel beforehand through Billing → Manage Subscription. Stripe checkout confirms your exact total and renewal date. Creating an account alone does not activate the trial or charge your card. Review pricing and trial terms →"}},{"@type":"Question","name":"Can I tune the lead score for my business?","acceptedAnswer":{"@type":"Answer","text":"Yes. Your account owner can open Settings → Your scoring preferences and change the points for urgency, buying readiness, a provided phone number, and inquiry notes. Peak uses the saved preferences when scoring leads; it does not learn weights automatically from sales results."}},{"@type":"Question","name":"How do I connect Google Ads lead forms?","acceptedAnswer":{"@type":"Answer","text":"In Peak, create a Google Ads campaign and open its connection setup to get your private webhook URL and key. In your Google lead form’s Lead delivery option, paste those values and use Send test data, then confirm receipt in Peak. This is a manual lead-form connection; your Google account must be eligible for lead forms. Connecting the form does not launch ads, change your budget, or import past leads."}},{"@type":"Question","name":"Does a score of 82 mean an 82% chance of a sale?","acceptedAnswer":{"@type":"Answer","text":"No. It means the lead earned 82 points under your scoring rules. Use it to prioritize review and follow-up alongside the person’s actual inquiry. It does not verify budget, guarantee intent, or promise a sale."}}]}</script>
 </head>
 
-<body>
+<body data-page="home">
    <nav class="navbar">
     <div class="brand">
       <span class="peak-mark">▲</span>
@@ -95,6 +96,7 @@
 <a href="#features">Features</a>
 <a href="/pricing.html">Pricing</a>
 <a href="/about.html">About</a>
+<a href="/lead-scoring-for-contractors.html">For contractors</a>
 <a href="#peak-contact">Contact</a>
 <a href="/dashboard.html">Open Dashboard</a>
 
@@ -139,7 +141,7 @@
   Log Out
 </button>
     </div>
-  </nav>
+  <details class="public-mobile-menu"><summary>Menu</summary><nav aria-label="Mobile navigation"><a href="/#platform">Platform</a><a href="/#features">Features</a><a href="/pricing.html">Pricing</a><a href="/about.html">About</a><a href="/lead-scoring-for-contractors.html">For contractors</a><a href="/#peak-contact">Contact</a><a href="/login.html">Login</a><a href="/register.html">Start Free Trial</a></nav></details></nav>
 
   <main>
     <div
@@ -158,20 +160,12 @@
     <section class="hero">
 
   <div class="hero-badge">
-    LEAD INTELLIGENCE FOR SMALL BUSINESS
+    LEAD INTELLIGENCE FOR REMODELING &amp; TRADE BUSINESSES
   </div>
 
-  <h1>
-    Turn more leads into
-    <span>customers.</span>
-  </h1>
+  <h1>Know who to call first.<br><span>Turn more leads into customers.</span></h1>
 
-  <p class="hero-copy">
-    Peak captures, scores, organizes, and tracks
-    every lead so your team knows exactly who to
-    contact and where your best customers are
-    coming from.
-  </p>
+  <p class="hero-copy">You paid to bring the inquiry in. Don’t let it go cold in an inbox. Peak scores and queues inbound leads so your remodeling or trade team knows who to call first.</p>
 
   <div class="hero-actions">
     <a class="primary-button" href="/register.html">Start Free Trial</a>
@@ -234,36 +228,6 @@
     </li>
   </ul>
 </div>
-
-      <div class="metrics">
-
-        <div class="metric-card">
-          <span>NEW LEADS</span>
-          <strong>24</strong>
-          <small>Last 7 days</small>
-        </div>
-
-        <div class="metric-card">
-          <span>HIGH PRIORITY</span>
-          <strong>8</strong>
-          <small>Ready for follow-up</small>
-        </div>
-
-        <div class="metric-card">
-          <span>QUALIFIED</span>
-          <strong>14</strong>
-          <small>58% qualification rate</small>
-        </div>
-
-        <div class="metric-card">
-          <span>TOP SOURCE</span>
-          <strong>Google</strong>
-          <small>9 qualified leads</small>
-        </div>
-
-      </div>
-
-
 <div class="lead-entry-card">
   <h3>Ready to manage your own leads?</h3>
   <p>
@@ -359,28 +323,6 @@
 
     </div>
 
-    <div class="brief-grid">
-
-      <div class="brief-stat">
-        <span>NEW LEADS</span>
-        <strong id="brief-new">5</strong>
-        <small>Last 24 hours</small>
-      </div>
-
-      <div class="brief-stat">
-        <span>HIGH PRIORITY</span>
-        <strong id="brief-high">2</strong>
-        <small>Need attention</small>
-      </div>
-
-      <div class="brief-stat">
-        <span>TOP SOURCE</span>
-        <strong id="brief-source">Google</strong>
-        <small>Best lead source</small>
-      </div>
-
-    </div>
-
     <div class="brief-priority">
 
       <div class="brief-priority-label">
@@ -404,7 +346,9 @@
   </div>
 
 </section>
-    <section id="features" class="features">
+    <!-- Pending verified customer evidence: do not render this template until approved quotes exist. -->
+<template id="customer-proof-template"><section class="customer-proof" aria-labelledby="customer-proof-title"><p class="eyebrow">CUSTOMER EXPERIENCES</p><h2 id="customer-proof-title">From the teams using Peak.</h2><div data-approved-customer-quotes></div><div data-verified-review-badges></div></section></template>
+<section id="features" class="features">
       <p class="launch-availability">Available now: website forms, Google Ads lead-form connections, custom webhooks, lead scoring, team assignments, and your morning call list. Facebook/Instagram connections are coming soon.</p>
 
       <div class="section-heading">
@@ -463,7 +407,8 @@
 
 
 
-    <section id="how-scoring-works" class="home-scoring" aria-labelledby="scoring-explainer-title"><div class="home-scoring-copy"><p class="eyebrow">HOW SCORING WORKS</p><h2 id="scoring-explainer-title">See why a lead moves up your list.</h2><p>Peak adds points for how soon someone needs help, how ready they are to buy, and whether they’ve provided a phone number and inquiry notes. Every lead starts with 25 points; the total is capped at 100, and missing answers earn no extra points. Your account owner can adjust the points in Settings to reflect what matters to your business. This is a rules-based priority score, not a prediction of a sale; budget confirmation, response speed, source, and pipeline stage do not currently change it.</p></div><aside class="score-example" aria-label="Example using default scoring rules"><div class="score-example-heading"><h3>A lead ready to compare options</h3><strong>82<span>/100</span></strong></div><p>Example using default rules</p><dl><div><dt>Starting points</dt><dd>25</dd></div><div><dt>Needs help within 30 days</dt><dd>+25</dd></div><div><dt>Actively comparing options</dt><dd>+20</dd></div><div><dt>Phone number provided</dt><dd>+8</dd></div><div><dt>Inquiry notes provided</dt><dd>+4</dd></div></dl><p class="score-example-result">High Priority · Default threshold: 75</p></aside></section>
+    <section class="shared-priorities" aria-labelledby="shared-priorities-title"><p class="eyebrow">FOR THE OWNER AND THE PERSON MAKING THE CALLS</p><h2 id="shared-priorities-title">One list, one definition of qualified.</h2><p>Set your scoring preferences once in Settings so your team uses the same rules when deciding who to call first. Each lead’s assignee and next step stay visible, so the owner and estimator can agree on priorities instead of keeping separate lists.</p><p>Give a new inquiry a clear owner and a planned follow-up. Being the contractor who responds reliably starts with knowing whose call it is.</p><p class="audience-scope">Built for small remodeling and trade teams managing inbound inquiries—not an enterprise sales suite or a prospect-list service.</p></section>
+<section id="how-scoring-works" class="home-scoring" aria-labelledby="scoring-explainer-title"><div class="home-scoring-copy"><p class="eyebrow">HOW SCORING WORKS</p><h2 id="scoring-explainer-title">See why a lead moves up your list.</h2><p>Peak adds points for how soon someone needs help, how ready they are to buy, and whether they’ve provided a phone number and inquiry notes. Every lead starts with 25 points; the total is capped at 100, and missing answers earn no extra points. Your account owner can adjust the points in Settings to reflect what matters to your business. This is a rules-based priority score, not a prediction of a sale; budget confirmation, response speed, source, and pipeline stage do not currently change it.</p></div><aside class="score-example" aria-label="Example using default scoring rules"><div class="score-example-heading"><h3>A lead ready to compare options</h3><strong>82<span>/100</span></strong></div><p>Example using default rules</p><dl><div><dt>Starting points</dt><dd>25</dd></div><div><dt>Needs help within 30 days</dt><dd>+25</dd></div><div><dt>Actively comparing options</dt><dd>+20</dd></div><div><dt>Phone number provided</dt><dd>+8</dd></div><div><dt>Inquiry notes provided</dt><dd>+4</dd></div></dl><p class="score-example-result">High Priority · Default threshold: 75</p></aside></section>
 <section id="homepage-faq" class="home-faq" aria-labelledby="home-faq-title"><p class="eyebrow">QUESTIONS BEFORE YOU START</p><h2 id="home-faq-title">Know what you’re signing up for.</h2>
 <details><summary>Is the demo data from real customers?</summary><p>No. The names, lead records, and performance figures in the homepage demo are fictional examples, labeled SAMPLE DATA. They illustrate the workflow and are not customer results or testimonials. Your own account displays the inquiries you add or receive through connected sources.</p></details>
 <details><summary>What does the trial cost, and what happens afterward?</summary><p>The trial is free for 14 days after activation in Stripe checkout. <strong id="signup-price" aria-live="polite">Loading current subscription price…</strong>. A payment method is required to activate the trial, and your subscription renews automatically unless you cancel beforehand through Billing → Manage Subscription. Stripe checkout confirms your exact total and renewal date. Creating an account alone does not activate the trial or charge your card. <a href="/pricing.html">Review pricing and trial terms →</a></p></details>
@@ -471,7 +416,8 @@
 <details><summary>How do I connect Google Ads lead forms?</summary><p>In Peak, create a Google Ads campaign and open its connection setup to get your private webhook URL and key. In your Google lead form’s Lead delivery option, paste those values and use Send test data, then confirm receipt in Peak. This is a manual lead-form connection; your Google account must be eligible for lead forms. Connecting the form does not launch ads, change your budget, or import past leads.</p></details>
 <details><summary>Does a score of 82 mean an 82% chance of a sale?</summary><p>No. It means the lead earned 82 points under your scoring rules. Use it to prioritize review and follow-up alongside the person’s actual inquiry. It does not verify budget, guarantee intent, or promise a sale.</p></details>
 <div class="home-faq-actions"><a class="primary-button" href="/pricing.html">See pricing &amp; trial details</a><a class="trust-text-link" href="/#peak-contact">Still have a question? Ask Peak →</a></div></section>
-<section class="home-founder" aria-labelledby="home-founder-title"><div><p class="eyebrow">MEET THE FOUNDER</p><h2 id="home-founder-title">A person behind the platform.</h2><p>Peak is founded by Zach DeKraai and operated by The Tripple Z. Have a question about whether it fits your sales workflow? Get in touch before you sign up.</p><a class="trust-text-link" href="/about.html">Meet Zach and learn about Peak →</a></div><div class="home-founder-name"><span class="founder-monogram" aria-hidden="true">ZD</span><strong>Zach DeKraai</strong><span>Founder · Peak Lead Platform</span></div></section>
+<!-- Founder photo pending owner-provided asset; keep the honest monogram meanwhile. -->
+<section class="home-founder" aria-labelledby="home-founder-title"><div><p class="eyebrow">MEET THE FOUNDER</p><h2 id="home-founder-title">A person behind the platform.</h2><p>Peak is founded by Zach DeKraai and operated by The Tripple Z. Have a question about whether it fits your sales workflow? Get in touch before you sign up.</p><a class="trust-text-link" href="/about.html">Meet Zach and learn about Peak →</a></div><div class="home-founder-name"><span class="founder-monogram" aria-hidden="true">ZD</span><strong>Zach DeKraai</strong><span>Founder · Peak Lead Platform</span><a class="trust-text-link founder-linkedin" href="https://www.linkedin.com/in/zachdek181/" target="_blank" rel="noopener noreferrer">Zach on LinkedIn ↗</a></div></section>
     <section id="peak-contact" class="peak-contact" aria-labelledby="peak-contact-heading">
       <div class="peak-contact-copy">
         <p class="eyebrow">LET’S TALK</p>
@@ -486,6 +432,7 @@
   </main>
 
 
+<nav class="comparison-links" aria-label="Compare lead workflows"><a href="/vs/less-annoying-crm.html">Peak vs Less Annoying CRM</a><a href="/vs/spreadsheet-lead-tracker.html">Peak vs spreadsheets</a><a href="/lead-scoring-for-contractors.html">Lead scoring for contractors</a></nav>
   <footer id="contact">
     <div class="brand">
       <span class="peak-mark">▲</span>

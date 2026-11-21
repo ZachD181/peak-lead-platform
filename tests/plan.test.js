@@ -8,7 +8,7 @@ const root=process.env.PEAK_TEST_ROOT||path.resolve(__dirname,'..');
 const localRequire=createRequire(path.join(root,'package.json'));
 async function render(plan,ok=true){
   const element={};
-  const context=vm.createContext({document:{getElementById:()=>element},Intl,fetch:async()=>({ok,json:async()=>plan})});
+  const context=vm.createContext({document:{getElementById:id=>id==="signup-price"?element:null},Intl,fetch:async()=>({ok,json:async()=>plan})});
   vm.runInContext(fs.readFileSync(path.join(root,'public/plan.js'),'utf8'),context);
   await vm.runInContext('loadSignupPlan()',context);
   return element.textContent;
@@ -37,4 +37,12 @@ test('inactive Stripe plan returns unavailable',async()=>{
   const result=await planRequest({active:false,unit_amount:20000,recurring:{interval:'month'}});
   assert.equal(result.status,503);
   assert.match(result.body.error,/temporarily unavailable/);
+});
+
+test('FAQ structured answer follows the displayed live price',async()=>{
+ const price={},schema={textContent:JSON.stringify({mainEntity:[{name:'Trial cost?',acceptedAnswer:{text:'old'}}]})};
+ const detail={querySelector:()=>({textContent:'Trial cost?'}),querySelectorAll:()=>[{get textContent(){return '14 days free. '+price.textContent;}}]};
+ const context=vm.createContext({document:{getElementById:id=>id==='signup-price'?price:id==='faq-schema'?schema:null,querySelectorAll:()=>[detail]},Intl,fetch:async()=>({ok:true,json:async()=>({amount:9900,currency:'usd',interval:'month',intervalCount:1})})});
+ vm.runInContext(fs.readFileSync(path.join(root,'public/plan.js'),'utf8'),context);await vm.runInContext('loadSignupPlan()',context);
+ assert.equal(JSON.parse(schema.textContent).mainEntity[0].acceptedAnswer.text,'14 days free. Then $99.00 / month (USD)');
 });

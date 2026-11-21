@@ -1,0 +1,24 @@
+# Peak Lead Platform
+> Lead capture, configurable scoring, and a daily call list for small remodeling and trade teams. Operated by The Tripple Z; founder Zach DeKraai.
+
+Last updated: November 21, 2026.
+
+## Product
+Peak organizes incoming inquiries, assignments, pipeline stages, and follow-up priorities. Scores start at 25 and add configured points for urgency, buying readiness, phone, and notes, capped at 100. Scores are not sale probabilities. Website forms, Google lead-form webhooks, and custom webhooks are available; native Facebook/Instagram connections remain pending approval.
+
+## Pricing and trial
+One business subscription, currently USD 200/month; team invitations are included without per-seat subscription charges. A 14-day trial starts after Stripe checkout activation with a payment method. Auto-renews unless canceled before renewal through Billing > Manage Subscription. Check the pricing page and live plan endpoint for current terms and price.
+
+## Key pages
+- [Homepage](https://www.peakleadplatform.com/): Product overview, scoring example, and FAQs.
+- [Pricing](https://www.peakleadplatform.com/pricing.html): Current subscription and trial terms.
+- [Live plan data](https://www.peakleadplatform.com/api/plan): Configured Stripe price and trial duration.
+- [About](https://www.peakleadplatform.com/about.html): Founder and operating business.
+- [Security and data](https://www.peakleadplatform.com/security.html): Current safeguards and providers.
+- [Privacy](https://www.peakleadplatform.com/privacy.html): Data handling and deletion requests.
+- [Peak vs Less Annoying CRM](https://www.peakleadplatform.com/vs/less-annoying-crm.html): Dated, sourced comparison.
+- [Peak vs spreadsheets](https://www.peakleadplatform.com/vs/spreadsheet-lead-tracker.html): Workflow comparison.
+- [Lead scoring for contractors](https://www.peakleadplatform.com/lead-scoring-for-contractors.html): How to prioritize inbound trade inquiries.
+
+## Accuracy
+Homepage example leads are fictional demonstrations, not customer results. No public customer count, testimonial, review rating, SOC 2 certification, US-only residency guarantee, or guaranteed sales outcome is claimed. Contact support@peakleadplatform.com for product questions.

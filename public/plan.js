@@ -15,6 +15,8 @@ async function loadSignupPlan() {
     const amount = formatter.format(plan.amount / scale);
     const period = plan.intervalCount === 1 ? plan.interval : plan.intervalCount + " " + plan.interval + "s";
     priceElement.textContent = "Then " + amount + " / " + period + " (" + plan.currency.toUpperCase() + ")";
+    const faqElement=document.getElementById("faq-schema");
+    if(faqElement){const faq=JSON.parse(faqElement.textContent);for(const detail of document.querySelectorAll(".home-faq details, .pricing-faq details")){const question=detail.querySelector("summary")?.textContent.trim();const entry=faq.mainEntity.find(q=>q.name===question);if(entry)entry.acceptedAnswer.text=[...detail.querySelectorAll("p")].map(p=>p.textContent.trim()).join(" ");}faqElement.textContent=JSON.stringify(faq);}
   } catch {
     priceElement.textContent = "Pricing is temporarily unavailable. Please refresh before continuing.";
   }
