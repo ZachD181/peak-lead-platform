@@ -351,6 +351,7 @@ logoutButton?.addEventListener(
   "click",
   async () => {
     try {
+      window.peakAnalytics?.resetIdentity();
       await fetch("/api/logout", {
         method: "POST",
       });

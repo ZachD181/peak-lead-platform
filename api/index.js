@@ -1,4 +1,5 @@
 const crypto = require("crypto");
+const { recordOutcome } = require("../lib/analytics");
 
 const {
   authenticateWithLoginLimit,
@@ -85,6 +86,13 @@ const isStripeLiveMode =
   getCheckoutReservation,
   completeCheckoutReservation,
   isStripeLiveMode,
+  async onSubscriptionOutcome(event, clientId, properties) {
+    try {
+      const users = await getUsersByClient(clientId);
+      const owner = users.find(user => user.role === "owner");
+      await recordOutcome(event, owner, properties);
+    } catch { console.warn("HeyCatch billing outcome could not be recorded."); }
+  },
 });
 
 const { Resend } = require("resend");
@@ -1388,6 +1396,8 @@ async function handleRegister(req, res) {
     }
   );
 
+  await recordOutcome("signup_completed", owner, { plan: client.plan || "standard" }, req);
+
   return sendJson(res, 201, {
     success: true,
 
@@ -1861,6 +1871,8 @@ res.setHeader(
     `Max-Age=${60 * 60 * 8}`,
   ].join("; ")
 );
+
+await recordOutcome("login_completed", user, {}, req);
 
 return sendJson(res, 200, {
   success: true,

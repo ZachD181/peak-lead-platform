@@ -12,6 +12,11 @@ const PUBLIC_DIR = path.join(__dirname, "public");
 function serveStatic(req, res) {
   let requestPath = req.url.split("?")[0];
 
+  if (/^\/[a-z0-9]$/.test(requestPath)) {
+    res.writeHead(302, { Location: `/?utm_source=heycatch&utm_campaign=${requestPath.slice(1)}` });
+    return res.end();
+  }
+
   if (requestPath === "/") {
     requestPath = "/index.html";
   }

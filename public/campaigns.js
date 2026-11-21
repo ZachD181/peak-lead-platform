@@ -325,7 +325,8 @@ async function setupNavigation() {
 logoutButton?.addEventListener(
   "click",
   async () => {
-    await fetch("/api/logout", {
+    window.peakAnalytics?.resetIdentity();
+      await fetch("/api/logout", {
       method: "POST",
     });
 
