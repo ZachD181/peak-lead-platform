@@ -139,6 +139,8 @@ if (!response.ok) {
       data.subscriptionStatus;
 
     const awaitingActivation = status === "inactive" && !data.billingSubscriptionId && !data.trialEndsAt;
+    const newCustomerPlan = document.getElementById("new-customer-plan");
+    if (newCustomerPlan) newCustomerPlan.hidden = !awaitingActivation;
     if (awaitingActivation) {
       billingTitle.textContent = "Activate your 14-day Peak trial";
       billingSubtitle.textContent = "Your account is ready. Complete secure Stripe checkout to activate your trial and open your dashboard. A payment method is required; checkout shows the price and renewal date before you confirm.";

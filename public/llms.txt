@@ -7,7 +7,7 @@ Last updated: November 21, 2026.
 Peak organizes incoming inquiries, assignments, pipeline stages, and follow-up priorities. Scores start at 25 and add configured points for urgency, buying readiness, phone, and notes, capped at 100. Scores are not sale probabilities. Website forms, Google lead-form webhooks, and custom webhooks are available; native Facebook/Instagram connections remain pending approval.
 
 ## Pricing and trial
-One business subscription, currently USD 200/month; team invitations are included without per-seat subscription charges. A 14-day trial starts after Stripe checkout activation with a payment method. Auto-renews unless canceled before renewal through Billing > Manage Subscription. Check the pricing page and live plan endpoint for current terms and price.
+One business subscription, normally USD 200/month; team invitations are included without per-seat subscription charges. A new-business introductory offer is limited to the first 10 trial activations: 14 days free, then USD 99/month for the first two paid months, then USD 200/month. Availability is confirmed by /api/plan and Stripe checkout; existing and returning subscriptions are excluded. A 14-day trial starts after Stripe checkout activation with a payment method. Auto-renews unless canceled before renewal through Billing > Manage Subscription. Check the pricing page and live plan endpoint for current terms and price.
 
 ## Key pages
 - [Homepage](https://www.peakleadplatform.com/): Product overview, scoring example, and FAQs.

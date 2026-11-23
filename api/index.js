@@ -1,4 +1,5 @@
 const crypto = require("crypto");
+const { INTRO_COUPON_ID, getIntroductoryOffer } = require("../lib/introductoryOffer");
 const { recordOutcome } = require("../lib/analytics");
 
 const {
@@ -641,6 +642,15 @@ const hasBillingHistory = Boolean(
 
 const eligibleForTrial =
   !trialUsed && !hasBillingHistory;
+let introOffer = null;
+if (eligibleForTrial && process.env.STRIPE_INTRO_OFFER_ENABLED === "true") {
+  try {
+    const price = await stripe.prices.retrieve(process.env.STRIPE_PRICE_ID);
+    introOffer = await getIntroductoryOffer(stripe, price, { enabled: true, create: true });
+  } catch {
+    return sendJson(res, 503, { error: "The introductory offer could not be verified. Please try again shortly; no checkout was created." });
+  }
+}
   const existingSubscriptionId =
   client.billing_subscription_id ||
   client.billingSubscriptionId;
@@ -706,6 +716,14 @@ if (existingSubscriptionId) {
   }
 
   if (existingCheckoutSession.status === "open") {
+    const hasIntroOffer = existingCheckoutSession.metadata?.introOffer === INTRO_COUPON_ID;
+    if (introOffer && hasIntroOffer !== Boolean(introOffer.available)) {
+      await stripe.checkout.sessions.expire(existingCheckoutSession.id);
+      const cleared = await deleteCheckoutReservation(client.id, reservation.id, existingCheckoutSession.id);
+      return sendJson(res, 409, { error: cleared
+        ? "Your available billing offer has changed. Please refresh this page and select Start trial again to review the current terms."
+        : "Checkout terms changed. Please contact support before trying again." });
+    }
     if (!existingCheckoutSession.url) {
       return sendJson(res, 409, {
         error:
@@ -833,6 +851,10 @@ const checkoutCustomer = existingStripeCustomerId
    checkoutSession =
     await stripe.checkout.sessions.create({
      mode: "subscription",
+     ...(introOffer?.available ? { discounts: [{ coupon: INTRO_COUPON_ID }] } : {}),
+     custom_text: { submit: { message: introOffer?.available
+       ? "14 days free, then $99/month for your first two paid months, then $200/month. New businesses only; first 10 trial activations. Your offer is confirmed when Checkout completes. Renews automatically unless canceled before the next charge."
+       : "14 days free for eligible new businesses, then $200/month. Renews automatically unless canceled before the next charge. Returning subscribers do not receive another trial." } },
 
 ...checkoutCustomer,
       line_items: [
@@ -852,6 +874,7 @@ const checkoutCustomer = existingStripeCustomerId
       metadata: {
         clientId: client.id,
         userId: user.id,
+        ...(introOffer?.available ? { introOffer: INTRO_COUPON_ID } : {}),
       },
 
       payment_method_collection: "always",
@@ -862,6 +885,7 @@ subscription_data: {
     : {}),
   metadata: {
     clientId: client.id,
+    ...(introOffer?.available ? { introOffer: INTRO_COUPON_ID } : {}),
   },
 },
        }, {
@@ -870,6 +894,12 @@ subscription_data: {
 });
 
       } catch (error) {
+  const exhaustedIntroCoupon = ["coupon_expired", "coupon_max_redemptions_reached", "coupon_invalid"].includes(error.code) ||
+    (error.type === "StripeInvalidRequestError" && /coupon.*(?:used up|maximum.*redemption|expired|not valid)/i.test(error.message || ""));
+  if (introOffer?.available && exhaustedIntroCoupon) {
+    await releaseCheckoutReservation(client.id, reservationClaimed.id);
+    return sendJson(res, 409, { error: "The introductory places have just filled. Please refresh and review the regular price before starting a new checkout." });
+  }
   const uncertainStripeResult =
     error.type === "StripeConnectionError" ||
     error.type === "StripeAPIConnectionError" ||
@@ -2659,7 +2689,10 @@ async function handleAdminUpdateClientStatus(
         if (!price.active || !Number.isInteger(price.unit_amount) || !price.recurring) {
           throw new Error("The configured plan is not an active fixed recurring price.");
         }
+        const introOffer = await getIntroductoryOffer(stripe, price, { enabled: process.env.STRIPE_INTRO_OFFER_ENABLED === "true" });
+        res.setHeader("Cache-Control", "no-store");
         return sendJson(res, 200, {
+          ...(introOffer ? { introOffer } : {}),
           amount: price.unit_amount,
           currency: price.currency,
           interval: price.recurring.interval,

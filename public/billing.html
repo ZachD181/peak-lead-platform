@@ -43,6 +43,7 @@
         Manage Subscription
       </button>
 
+      <aside id="new-customer-plan" class="signup-plan" hidden aria-label="New customer trial and pricing"><p id="signup-price" aria-live="polite">Loading current subscription price…</p><p id="intro-offer-terms" class="pricing-terms" hidden>Introductory offer for new businesses: first 10 trial activations only. The 14-day free trial comes before the two discounted paid months. Your place is confirmed only when Stripe checkout completes. The regular price applies after the offer fills. Existing and returning subscriptions are not eligible.</p></aside>
       <p id="billing-message"></p>
 
       <p class="auth-footer">
@@ -51,6 +52,7 @@
     </section>
   </main>
 
+  <script src="/plan.js"></script>
   <script src="/billing.js"></script>
 </body>
 </html>
