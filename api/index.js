@@ -1,6 +1,6 @@
 const crypto = require("crypto");
 const { INTRO_COUPON_ID, getIntroductoryOffer } = require("../lib/introductoryOffer");
-const { recordOutcome } = require("../lib/analytics");
+const { recordOutcome, recordWebsiteSubmission, attributionProperties } = require("../lib/analytics");
 
 const {
   authenticateWithLoginLimit,
@@ -1426,7 +1426,7 @@ async function handleRegister(req, res) {
     }
   );
 
-  await recordOutcome("signup_completed", owner, { plan: client.plan || "standard" }, req);
+  await recordOutcome("signup_completed", owner, { plan: client.plan || "standard", ...attributionProperties(input.attribution) }, req);
 
   return sendJson(res, 201, {
     success: true,
@@ -2283,7 +2283,7 @@ const handleMetaOAuth = require("../lib/metaOAuth").createHandler({requireActive
 
 const handleTeam = require("../lib/team").createHandler({requireActiveSubscription,readBody,sendJson});
 
-const handleIntake=require('../lib/intake').createHandler({requireActiveSubscription,readBody,readRawBody,sendJson});
+const handleIntake=require('../lib/intake').createHandler({requireActiveSubscription,readBody,readRawBody,sendJson,onWebsiteSubmission:recordWebsiteSubmission});
 
 module.exports = async function handler(req, res) {
   try {

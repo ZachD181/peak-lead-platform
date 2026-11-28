@@ -37,6 +37,8 @@ registerForm?.addEventListener(
           "owner-email"
         ).value.trim(),
 
+      attribution: window.peakAttribution?.read() || {},
+
       ownerPassword:
         document.getElementById(
           "owner-password"
@@ -66,6 +68,9 @@ registerForm?.addEventListener(
           "Unable to create account."
         );
       }
+
+      // Identify only a server-confirmed new account; signup_completed is sent by the server once.
+      try { if (data.owner?.id) window.peakAnalytics?.setIdentity(data.owner.id, { email: data.owner.email, name: data.owner.name }); } catch {}
 
       registerMessage.textContent =
         "Account created. Sign in next, then activate your trial in secure checkout to open your dashboard.";
